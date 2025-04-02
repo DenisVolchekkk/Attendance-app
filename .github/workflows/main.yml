@@ -1,0 +1,36 @@
+name: .NET
+on:
+  push:
+  pull_request:
+    branches: [ caching ]
+    paths:
+    - '**.cs'
+    - '**.csproj'
+
+env:
+  DOTNET_VERSION: '8.0' # The .NET SDK version to use
+
+jobs:
+  build-and-test:
+
+    name: build-and-test-${{matrix.os}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore ./diplom/TestProject1/TestProject1.csproj
+      
+    - name: Build
+      run: dotnet build ./diplom/TestProject1/TestProject1.csproj --no-restore
+      
+    - name: Test
+      run: dotnet test ./diplom/TestProject1/TestProject1.csproj --no-build --verbosity normal
