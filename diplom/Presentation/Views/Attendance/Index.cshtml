@@ -1,0 +1,155 @@
+﻿@{
+    var authToken = Context?.Request?.Cookies["AuthToken"];
+    var email = string.Empty;
+    var roles = new List<string>(); // Список для хранения ролей
+    var isAuthSuccessful = false;
+
+    if (!string.IsNullOrEmpty(authToken))
+    {
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(authToken);
+
+        // Получение email
+        email = jwtToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
+
+        // Получение всех ролей
+        roles = jwtToken.Claims
+            .Where(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+            .Select(c => c.Value)
+            .ToList();
+
+        isAuthSuccessful = true;
+    }
+}
+@model PaginatedList<Domain.Models.Attendance>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Посещения</h1>
+@if (roles.Any(r => r != "Chief" && r != "Teacher"))
+{
+    <p>
+    <a asp-action="Create">Создать</a>
+    </p>
+}
+<form asp-action="Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            <input type="text" placeholder="Студент" name="SearchStudentName" value="@ViewData["SearchStudentName"]" />
+            <input type="text" placeholder="Дата" name="SearchAttendanceDate" value="@ViewData["SearchAttendanceDate"]" />
+            <input type="text" placeholder="Дисциплина" name="SearchDisciplineName" value="@ViewData["SearchDisciplineName"]" />
+            <input type="time" placeholder="Начало" name="SearchStartTime" value="@ViewData["SearchStartTime"]" />
+            <input type="submit" value="Поиск" class="btn btn-default" />
+            <a asp-action="Index">Вернуться к полному списку</a>
+        </p>
+    </div>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Студент
+            </th>
+            <th>
+                Время
+            </th>
+            <th>
+                Дата
+            </th>
+            <th>
+                Дисциплина
+            </th>
+            <th>
+                Присутствие
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Student.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Schedule.StartTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AttendanceDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Schedule.Discipline.Name)
+                </td>
+                <td>
+                    <form asp-action="TogglePresence" method="post" class="toggle-presence-form" data-id="@item.Id">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit" class="btn @(item.IsPresent ? "btn-success" : "btn-danger")">
+                            @(item.IsPresent ? "Присутствовал" : "Отсутствовал")
+                        </button>
+                    </form>
+                </td>
+                @if (roles.Any(r => r != "Chief" && r != "Teacher"))
+                {
+                    <td>
+                        @Html.ActionLink("Обновить", "Edit", new { id = item.Id }) |
+                        @Html.ActionLink("Удалить", "Delete", new { id = item.Id })
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+<a asp-action="Index"
+   asp-route-pageNumber="@(Model.PageIndex - 1)">
+    Предыдущая
+</a>
+<a asp-action="Index"
+   asp-route-pageNumber="@(Model.PageIndex + 1)">
+    Следущая
+</a>
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const forms = document.querySelectorAll(".toggle-presence-form");
+
+            forms.forEach(form => {
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault(); // Предотвращаем стандартную отправку формы
+
+                    const formData = new FormData(form);
+                    const id = form.getAttribute("data-id");
+
+                    fetch(`/Attendance/TogglePresence?id=${id}`, {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        },
+                        body: JSON.stringify({ id: id })
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                return response.json();
+                            } else {
+                                throw new Error("Ошибка при обновлении статуса");
+                            }
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                const button = form.querySelector("button");
+                                button.textContent = data.isPresent ? "Присутствовал" : "Отсутствовал";
+                                button.classList.toggle("btn-success", data.isPresent);
+                                button.classList.toggle("btn-danger", !data.isPresent);
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Ошибка:", error);
+                        });
+                });
+            });
+        });
+    </script>
+}

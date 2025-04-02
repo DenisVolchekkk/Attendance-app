@@ -1,0 +1,32 @@
+﻿@{
+    var authToken = Context?.Request?.Cookies["AuthToken"];
+    var email = string.Empty;
+    var role = string.Empty;
+    var isAuthSuccessful = false;
+
+    if (!string.IsNullOrEmpty(authToken))
+    {
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(authToken);
+
+        email = jwtToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
+        role = jwtToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+        isAuthSuccessful = true;
+    }
+}
+@{
+    ViewData["Title"] = "Home Page";
+}
+@if (isAuthSuccessful)
+{
+    <div class="text-center">
+        <p>Вход выполнен</p>
+    </div>
+
+}
+else
+{
+    <div class="text-center">
+        <p>Войдите в аккаунт</p>
+    </div>
+}

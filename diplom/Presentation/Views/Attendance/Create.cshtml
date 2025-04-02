@@ -1,0 +1,112 @@
+﻿@model Domain.ViewModel.AttendanceViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Создать</h1>
+
+<h4>Посещение</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="StudentId" class="control-label"></label>
+                <select asp-for="StudentId" class="form-control" asp-items="ViewBag.StudentId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ScheduleId" class="control-label"></label>
+                <select asp-for="ScheduleId" class="form-control" asp-items="ViewBag.ScheduleItems" id="schedule-select"></select>
+                <input type="hidden" id="schedule-days" value='@Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.ScheduleDayOfWeek)' />
+            </div>
+            <div class="form-group">
+                <label asp-for="AttendanceDate" class="control-label"></label>
+                <input asp-for="AttendanceDate" class="form-control" id="attendance-date" />
+                <span asp-validation-for="AttendanceDate" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsPresent" /> @Html.DisplayNameFor(model => model.IsPresent)
+                </label>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Создать" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Вернуться к полному списку</a>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const scheduleSelect = document.getElementById("schedule-select");
+            const attendanceDateInput = document.getElementById("attendance-date");
+            const studentSelect = document.getElementById("StudentId");
+            const scheduleDays = JSON.parse(document.getElementById("schedule-days").value);
+
+            function updateDatePicker() {
+                let selectedScheduleId = scheduleSelect.value; // Получить ID выбранного расписания
+                let dayOfWeek = scheduleDays[selectedScheduleId]; // Найти DayOfWeek для этого ID
+
+                if (dayOfWeek !== undefined) {
+                    initializeDatePicker("#attendance-date", [dayOfWeek]);
+                    attendanceDateInput.disabled = false;
+                } else {
+                    attendanceDateInput.disabled = true; // Если расписание не выбрано
+                }
+            }
+
+
+            scheduleSelect.addEventListener("change", function () {
+                updateDatePicker();
+            });
+
+            updateDatePicker(); // Инициализировать при загрузке страницы
+        });
+
+        function initializeDatePicker(selector, allowedDays) {
+            // Проверяем, загружена ли библиотека Flatpickr
+            if (typeof flatpickr === 'undefined') {
+                console.error('Flatpickr не подключен. Подключите библиотеку перед вызовом функции.');
+                return;
+            }
+            // Получаем текущую дату
+            const currentDate = new Date();
+
+            // Ищем первый допустимый день, начиная с текущей даты
+            let defaultDate = null;
+            for (let i = 0; i < 7; i++) { // Перебираем дни недели от 0 до 6
+                const testDate = new Date(currentDate);
+                testDate.setDate(currentDate.getDate() - i); // Перемещаемся на i дней вперёд
+                if (allowedDays.includes(testDate.getDay())) {
+                    defaultDate = testDate;
+                    break; // Останавливаем поиск, как только нашли первый подходящий день
+                }
+            }
+            // Получаем сегодняшнюю дату
+            const today = new Date();
+
+            // Инициализация Flatpickr с фильтрацией разрешённых дней
+            flatpickr(selector, {
+                dateFormat: "Y-m-d", // Формат даты
+                enable: [
+                    function (date) {
+                        // Получаем день недели (0 - воскресенье, 1 - понедельник, ..., 6 - суббота)
+                        const day = date.getDay();
+                        return allowedDays.includes(day); // Разрешаем только указанные дни
+                    }
+                ],
+                defaultDate: defaultDate, // Устанавливаем первую подходящую дату по умолчанию
+                maxDate: today, // Ограничение выбора дат не позже сегодняшнего дня
+                locale: "ru" // Локализация на русский язык (опционально)
+            });
+        }
+    </script>
+}

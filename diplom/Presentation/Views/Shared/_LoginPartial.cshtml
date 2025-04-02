@@ -1,0 +1,36 @@
+﻿@{
+    var authToken = Context?.Request?.Cookies["AuthToken"];
+    var email = string.Empty;
+    var role = string.Empty;
+    var isAuthSuccessful = false;
+
+    if (!string.IsNullOrEmpty(authToken))
+    {
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(authToken);
+
+        email = jwtToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
+        role = jwtToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+        isAuthSuccessful = true;
+    }
+}
+
+<ul class="navbar-nav">
+@if (isAuthSuccessful   )
+{
+    <li class="nav-item">
+        <form class="form-inline" asp-area="" asp-controller="Register" asp-action="Logout">
+            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-area="" asp-controller="Register" asp-action="Register">Register</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-area="" asp-controller="Register" asp-action="Authentication">Login</a>
+    </li>
+}
+</ul>

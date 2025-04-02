@@ -1,0 +1,43 @@
+﻿@model PaginatedList<Domain.ViewModel.UserWithRoleViewModel>
+
+@{
+    ViewData["Title"] = "User List";
+}
+
+<h1>Пользователи</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Пользователь</th>
+            <th>Роли</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.FullName </td>
+                <td>
+                @foreach(var role in user.Role)
+                {
+                        @role 
+                        @:&nbsp
+                }
+                </td>
+                <td>
+                    @Html.ActionLink("Обновить", "Edit", new { id = user.Id, Roles = user.Role.ToList() })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<a asp-action="UserList"
+   asp-route-pageNumber="@(Model.PageIndex - 1)">
+    Предыдущая
+</a>
+<a asp-action="UserList"
+   asp-route-pageNumber="@(Model.PageIndex + 1)">
+    Следующая
+</a>

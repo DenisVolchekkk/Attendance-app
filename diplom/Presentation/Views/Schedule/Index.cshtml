@@ -1,0 +1,133 @@
+﻿@{
+    var authToken = Context?.Request?.Cookies["AuthToken"];
+    var email = string.Empty;
+    var roles = new List<string>(); // Список для хранения ролей
+    var isAuthSuccessful = false;
+
+    if (!string.IsNullOrEmpty(authToken))
+    {
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(authToken);
+
+        // Получение email
+        email = jwtToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
+
+        // Получение всех ролей
+        roles = jwtToken.Claims
+            .Where(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+            .Select(c => c.Value)
+            .ToList();
+
+        isAuthSuccessful = true;
+    }
+
+    // Словарь для перевода дней недели
+    var dayOfWeekTranslation = new Dictionary<string, string>
+    {
+        { "Monday", "Понедельник" },
+        { "Tuesday", "Вторник" },
+        { "Wednesday", "Среда" },
+        { "Thursday", "Четверг" },
+        { "Friday", "Пятница" },
+        { "Saturday", "Суббота" },
+        { "Sunday", "Воскресенье" }
+    };
+}
+@model PaginatedList<Domain.Models.Schedule>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Расписание</h1>
+@if (roles.Any(r => r != "Chief" && r != "Teacher"))
+{
+    <p>
+        <a asp-action="Create">Создать</a>
+    </p>
+}
+<form asp-action="Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            <input type="time" placeholder="Начало" name="SearchStartTime" value="@ViewData["SearchStartTime"]" />
+            <input type="text" placeholder="День недели" name="SearchDayOfWeek" value="@ViewData["SearchDayOfWeek"]" />
+            <input type="text" placeholder="Учитель" name="SearchTeacherName" value="@ViewData["SearchTeacherName"]" />
+            <input type="text" placeholder="Дисциплина" name="SearchDisciplineName" value="@ViewData["SearchDisciplineName"]" />
+            <input type="submit" value="Поиск" class="btn btn-default" /> |
+            <a asp-action="Index">Вернуться к полному списку</a>
+        </p>
+    </div>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Начало
+            </th>
+            <th>
+                Конец
+            </th>
+            <th>
+                День недели
+            </th>
+            <th>
+                Группа
+            </th>
+            <th>
+                Учитель
+            </th>
+            <th>
+                Дисциплина
+            </th>
+            @*             <th>
+            @Html.DisplayNameFor(model => model.Id)
+            </th> *@
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StartTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EndTime)
+                </td>
+                <td>
+                    @dayOfWeekTranslation[item.DayOfWeek.ToString()]
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Group.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Teacher.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Discipline.Name)
+                </td>
+                @*             <td>
+            @Html.DisplayFor(modelItem => item.Id)
+            </td> *@
+
+                @if (roles.Any(r => r != "Chief" && r != "Teacher"))
+                {
+                    <td>
+                        @Html.ActionLink("Обновить", "Edit", new { id = item.Id }) |
+                        @Html.ActionLink("Удалить", "Delete", new { id = item.Id })
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Index"
+   asp-route-pageNumber="@(Model.PageIndex - 1)">
+    Предыдущая
+</a>
+<a asp-action="Index"
+   asp-route-pageNumber="@(Model.PageIndex + 1)">
+    Следущая
+</a>

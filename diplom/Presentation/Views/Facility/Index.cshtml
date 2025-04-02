@@ -1,0 +1,85 @@
+﻿@{
+    var authToken = Context?.Request?.Cookies["AuthToken"];
+    var email = string.Empty;
+    var roles = new List<string>(); // Список для хранения ролей
+    var isAuthSuccessful = false;
+
+    if (!string.IsNullOrEmpty(authToken))
+    {
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(authToken);
+
+        // Получение email
+        email = jwtToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
+
+        // Получение всех ролей
+        roles = jwtToken.Claims
+            .Where(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+            .Select(c => c.Value)
+            .ToList();
+
+        isAuthSuccessful = true;
+    }
+}
+@model PaginatedList<Domain.Models.Facility>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Факультеты</h1>
+
+<p>
+    <a asp-action="Create">Создать</a>
+</p>
+<form asp-action="Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            <input type="text" placeholder="Факультет" name="SearchString" value="@ViewData["CurrentFilter"]" />
+            <input type="submit" value="Поиск" class="btn btn-default" /> |
+            <a asp-action="Index">Вернуться к полному списку</a>
+        </p>
+    </div>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+@*             <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th> *@
+            <th>
+                Название
+            </th>
+
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+@*             <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td> *@
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+
+                @if (roles.Any(r => r != "Chief" && r != "Teacher"))
+            {
+                <td>
+                    @Html.ActionLink("Обновить", "Edit", new { id = item.Id }) |
+                    @Html.ActionLink("Удалить", "Delete", new { id = item.Id })
+                </td>
+            }
+        </tr>
+}
+    </tbody>
+</table>
+<a asp-action="Index"
+   asp-route-pageNumber="@(Model.PageIndex - 1)">
+    Предыдущая
+</a>
+<a asp-action="Index"
+   asp-route-pageNumber="@(Model.PageIndex + 1)">
+    Следущая
+</a>

@@ -1,0 +1,38 @@
+﻿@model Domain.ViewModel.RoleViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<form asp-action="UpdateRoles" method="post">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <table>
+        <thead>
+            <tr>
+                <th>Роль</th>
+                <th>Выбор</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var role in Model.RoleList)
+            {
+                <tr>
+                    <td>@role.Name</td>
+                    <td>
+                        <input type="checkbox"
+                               name="Roles"
+                               value="@role.Name"
+                        @(Model.Roles.Contains(role.Name) ? "checked" : "") />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="submit">Сохранить</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

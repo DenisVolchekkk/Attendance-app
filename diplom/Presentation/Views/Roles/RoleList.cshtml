@@ -1,0 +1,37 @@
+﻿@model PaginatedList<Domain.Models.Role>
+
+@{
+    ViewData["Title"] = "Role List";
+}
+
+<h1>Role List</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Роль</th>
+            <th>Описание</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var role in Model)
+        {
+            <tr>
+                <td>@role.Name</td>
+                <td>@role.Description</td>
+@*                 <td>
+                    <a class="btn btn-primary" href="@Url.Action("Edit", "Roles", new { id = role.Id })">Edit</a>
+                    <a class="btn btn-danger" href="@Url.Action("Delete", "Roles", new { id = role.Id })">Delete</a>
+                </td> *@
+            </tr>
+        }
+    </tbody>
+</table>
+<a asp-action="RoleList"
+   asp-route-pageNumber="@(Model.PageIndex - 1)">
+    Предыдущая
+</a>
+<a asp-action="RoleList"
+   asp-route-pageNumber="@(Model.PageIndex + 1)">
+    Следующая
+</a>

@@ -1,0 +1,13 @@
+E:\diplom\diplom\EmailService\bin\Debug\net8.0\EmailService.deps.json
+E:\diplom\diplom\EmailService\bin\Debug\net8.0\EmailService.dll
+E:\diplom\diplom\EmailService\bin\Debug\net8.0\EmailService.pdb
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\EmailService.csproj.AssemblyReference.cache
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\EmailService.GeneratedMSBuildEditorConfig.editorconfig
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\EmailService.AssemblyInfoInputs.cache
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\EmailService.AssemblyInfo.cs
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\EmailService.csproj.CoreCompileInputs.cache
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\EmailService.sourcelink.json
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\EmailService.dll
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\refint\EmailService.dll
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\EmailService.pdb
+E:\diplom\diplom\EmailService\obj\Debug\net8.0\ref\EmailService.dll
