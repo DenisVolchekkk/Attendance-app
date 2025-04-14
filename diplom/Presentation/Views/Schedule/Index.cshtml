@@ -123,11 +123,24 @@
     </tbody>
 </table>
 
-<a asp-action="Index"
-   asp-route-pageNumber="@(Model.PageIndex - 1)">
-    Предыдущая
-</a>
-<a asp-action="Index"
-   asp-route-pageNumber="@(Model.PageIndex + 1)">
-    Следущая
-</a>
+<div class="pagination">
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+       asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
+       asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+       asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+        Предыдущая
+    </a>
+
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+       asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
+       asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+       asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+       class="@(!Model.HasNextPage ? "disabled" : "")">
+        Следующая
+    </a>
+</div>

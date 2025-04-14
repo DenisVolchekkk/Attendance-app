@@ -1,29 +1,37 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'attandance_list_bloc.dart';
 
-abstract class AttandanceListEvent extends Equatable{}
+abstract class AttandanceListEvent extends Equatable {}
 
 class LoadAttandanceList extends AttandanceListEvent {
-  LoadAttandanceList({
-    this.completer,
-  });
-
+  final int? day;
+  final String? groupName;
+  final String? discipline;
+  final TimeOfDay? attendanceTime;
+  final DateTime? attendanceDate;
   final Completer? completer;
   
+  LoadAttandanceList({
+    this.day,
+    this.groupName,
+    this.discipline,
+    this.attendanceTime,
+    this.attendanceDate,
+    this.completer,
+  });
+  
   @override
-  // TODO: implement props
-  List<Object?> get props => [completer];
+  List<Object?> get props => [day, groupName, discipline, attendanceTime, attendanceDate, completer];
 }
+
 class UpdateAttendanceEvent extends AttandanceListEvent {
   final Attendance attendance;
   final Completer? completer;
+  
   UpdateAttendanceEvent(
     this.attendance,
     this.completer,
   );
     
   @override
-  // TODO: implement props
   List<Object?> get props => [attendance, completer];
 }
-

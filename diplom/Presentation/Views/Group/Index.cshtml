@@ -27,7 +27,7 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Факультеты</h1>
+<h1>Группы</h1>
 
 <p>
     <a asp-action="Create">Создать</a>
@@ -88,11 +88,22 @@
     </tbody>
 </table>
 
-<a asp-action="Index"
-   asp-route-pageNumber="@(Model.PageIndex - 1)">
-    Предыдущая
-</a>
-<a asp-action="Index"
-   asp-route-pageNumber="@(Model.PageIndex + 1)">
-    Следущая
-</a>
+<div class="pagination">
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-SearchGroupName="@ViewData["SearchGroupName"]"
+       asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+       asp-route-SearchFacilityName="@ViewData["SearchFacilityName"]"
+       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+        Предыдущая
+    </a>
+
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-SearchGroupName="@ViewData["SearchGroupName"]"
+       asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+       asp-route-SearchFacilityName="@ViewData["SearchFacilityName"]"
+       class="@(!Model.HasNextPage ? "disabled" : "")">
+        Следующая
+    </a>
+</div>

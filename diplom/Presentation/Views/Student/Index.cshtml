@@ -21,7 +21,8 @@
         isAuthSuccessful = true;
     }
 }
-@model IEnumerable<Domain.Models.Student>
+@model PaginatedList<Domain.Models.Student>
+
 
 @{
     ViewData["Title"] = "Index";
@@ -36,7 +37,7 @@
     <div class="form-actions no-color">
         <p>
             <input type="text" placeholder="Студент" name="SearchStudentName" value="@ViewData["SearchStudentName"]" />
-            <input type="text" placeholder="Группа" name="SearchStudentName" value="@ViewData["SearchGroupName"]" />
+            <input type="text" placeholder="Группа" name="SearchGroupName" value="@ViewData["SearchGroupName"]" />
             <input type="submit" value="Поиск" class="btn btn-default" /> |
             <a asp-action="Index">Вернуться к полному списку</a>
         </p>
@@ -46,10 +47,10 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Name)
+                Студент
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.GroupId)
+                Группа
             </th>
 @*             <th>
                 @Html.DisplayNameFor(model => model.Id)
@@ -80,3 +81,20 @@
 }
     </tbody>
 </table>
+<div class="pagination">
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+       asp-route-SearchGroupName="@ViewData["SearchGroupName"]"
+       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+        Предыдущая
+    </a>
+
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+       asp-route-SearchGroupName="@ViewData["SearchGroupName"]"
+       class="@(!Model.HasNextPage ? "disabled" : "")">
+        Следующая
+    </a>
+</div>

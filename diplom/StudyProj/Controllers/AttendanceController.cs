@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudyProj.Repositories.Implementations;
 using StudyProj.Repositories.Interfaces;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 namespace StudyProj.Controllers
 {
-    [Authorize(Roles = "Deputy Dean,Dean,Chief")]
+    [Authorize(Roles = "Deputy Dean,Dean,Chief,Teacher")]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class AttendanceController : ControllerBase
@@ -31,8 +32,12 @@ namespace StudyProj.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            var currentUserName = User.FindFirstValue(ClaimTypes.Name);
+            var isTeacher = User.IsInRole("Teacher");
+            var isChief = User.IsInRole("Chief");
+            var isAdmin = User.IsInRole("Dean") || User.IsInRole("Deputy Dean");
 
-            return new JsonResult(await Attendances.GetAllAsync(attendance));
+            return new JsonResult(await Attendances.GetAllAsync(attendance, currentUserName, isChief, isTeacher, isAdmin));
         }
         [HttpGet("{id}")]
         public async Task<ActionResult> GetAttendance(int id)

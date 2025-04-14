@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudyProj.Repositories.Implementations;
+using System.Security.Claims;
 namespace StudyProj.Controllers
 {
     [Authorize(Roles = "Deputy Dean,Dean,Chief")]
@@ -29,8 +30,12 @@ namespace StudyProj.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            var currentUserName = User.FindFirstValue(ClaimTypes.Name);
+            var isTeacher = User.IsInRole("Teacher");
+            var isChief = User.IsInRole("Chief");
+            var isAdmin = User.IsInRole("Dean") || User.IsInRole("Deputy Dean");
 
-            return new JsonResult(await Schedules.GetAllAsync(schedule));
+            return new JsonResult(await Schedules.GetAllAsync(schedule, currentUserName, isChief, isTeacher, isAdmin));
         }
         [HttpGet("{id}")]
         public async Task<ActionResult> GetSchedule(int id)

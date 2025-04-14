@@ -8,6 +8,7 @@ import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:student_app/firebase_options.dart';
 import 'package:student_app/repositories/attandance/abstract_attandance_repository.dart';
+import 'package:student_app/repositories/schedules/abstract_schedule_repository.dart';
 import 'package:student_app/repositories/models/models.dart';
 import 'package:student_app/repositories/autorize/abstract_autorize_repository.dart';
 import 'package:student_app/repositories/repositories.dart';
@@ -16,85 +17,93 @@ import 'package:talker_bloc_logger/talker_bloc_logger.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-const attandanceBoxName = 'attandance_box';
-void main() async {
-  
-  final talker = TalkerFlutter.init();
-  GetIt.I.registerSingleton(talker);
-  GetIt.I<Talker>().debug('Talker started');
-  GetIt.I<Talker>().error('Talker started');
-  GetIt.I<Talker>().info('Talker started');
+const attandanceBoxName = 'attendanceBox';
+const scheduleBoxName = 'scheduleBox';
+void main() {
+  runZonedGuarded(() async {
+    // 1. Инициализация Flutter Binding (должна быть первой!)
+    WidgetsFlutterBinding.ensureInitialized();
 
-  await Hive.initFlutter();
-  Hive.registerAdapter(TimeOfDayAdapter());
-  Hive.registerAdapter(TeacherAdapter());
-  Hive.registerAdapter(DisciplineAdapter());
-  Hive.registerAdapter(GroupAdapter());
-  Hive.registerAdapter(StudentAdapter());
-  Hive.registerAdapter(ScheduleAdapter());
-  Hive.registerAdapter(AttendanceAdapter());
+    // 2. Настройка Talker
+    final talker = TalkerFlutter.init();
+    GetIt.I.registerSingleton(talker);
+    GetIt.I<Talker>().debug('Talker started');
 
-  final attandanceBox = await Hive.openLazyBox<Attendance>(attandanceBoxName);
+    // 3. Инициализация Hive
+    await Hive.initFlutter();
+    Hive.registerAdapter(TimeOfDayAdapter());
+    Hive.registerAdapter(TeacherAdapter());
+    Hive.registerAdapter(DisciplineAdapter());
+    Hive.registerAdapter(GroupAdapter());
+    Hive.registerAdapter(StudentAdapter());
+    Hive.registerAdapter(ScheduleAdapter());
+    Hive.registerAdapter(AttendanceAdapter());
 
-  final app = await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  talker.info(app.options.projectId);
-  
-  final dio = Dio();
-    (dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
-      (client) {
-    client.badCertificateCallback = (cert, host, port) => true;
-    return client;
-  };
-  dio.interceptors.add(
-    TalkerDioLogger(
-      talker: talker,
-      settings: TalkerDioLoggerSettings(
-        printResponseData: false,
-      ),
-    ),
+    final attandanceBox = await Hive.openLazyBox<Attendance>(attandanceBoxName);
+    final scheduleBox = await Hive.openLazyBox<Schedule>(scheduleBoxName);
+
+    // 4. Инициализация Firebase
+    final app = await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
     );
-  dio.interceptors.add(InterceptorsWrapper(
-    onRequest: (options, handler) {
-      debugPrint("Request: ${options.method} ${options.uri}");
-      return handler.next(options);
-    },
-    onResponse: (response, handler) {
-      debugPrint("Response: ${response.statusCode} ${response.data}");
-      return handler.next(response);
-    },
-    onError: (DioException e, handler) {
-      debugPrint("DioError: ${e.message}");
-      return handler.next(e);
-    },
-  ));
-  Bloc.observer = TalkerBlocObserver(
-    talker: talker,
-    settings: TalkerBlocLoggerSettings(
-      printStateFullData: false,
-      printEventFullData: false,
-    ),
-  );
+    talker.info(app.options.projectId);
 
+    // 5. Настройка Dio
+    final dio = Dio();
+    (dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
+      client.badCertificateCallback = (cert, host, port) => true;
+      return client;
+    };
+    dio.interceptors.add(
+      TalkerDioLogger(
+        talker: talker,
+        settings: TalkerDioLoggerSettings(printResponseData: false),
+      ),
+    );
+    dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) {
+        debugPrint("Request: ${options.method} ${options.uri}");
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        debugPrint("Response: ${response.statusCode} ${response.data}");
+        return handler.next(response);
+      },
+      onError: (DioException e, handler) {
+        debugPrint("DioError: ${e.message}");
+        return handler.next(e);
+      },
+    ));
 
-  GetIt.I.registerLazySingleton<AbstractAttandanceRepository>(
-    () => AttandanceRepository(
-      dio: dio,
-      attandanceBox: attandanceBox,
-    ),
-  );
-  
-  GetIt.I.registerLazySingleton<AbstractAutorizeRepository>(
-    () => AutorizeRepository(
-      dio: dio,
-    ),
-  );
+    // 6. Настройка Bloc Observer
+    Bloc.observer = TalkerBlocObserver(
+      talker: talker,
+      settings: TalkerBlocLoggerSettings(
+        printStateFullData: false,
+        printEventFullData: false,
+      ),
+    );
 
-  FlutterError.onError =
-      (details) => GetIt.I<Talker>().handle(details.exception, details.stack);
+    // 7. Регистрация репозиториев в GetIt
+    GetIt.I.registerLazySingleton<AbstractAttandanceRepository>(
+      () => AttandanceRepository(dio: dio, attandanceBox: attandanceBox),
+    );
+    GetIt.I.registerLazySingleton<AbstractScheduleRepository>(
+      () => ScheduleRepository(dio: dio, scheduleBox: scheduleBox),
+    );
+    GetIt.I.registerLazySingleton<AbstractAutorizeRepository>(
+      () => AutorizeRepository(dio: dio),
+    );
 
-  runZonedGuarded(() => runApp(const StudentsApp()), (e, st) {
-    GetIt.I<Talker>().handle(e, st);
+    // 8. Обработчик ошибок Flutter
+    FlutterError.onError = (details) {
+      GetIt.I<Talker>().handle(details.exception, details.stack);
+    };
+
+    // 9. Запуск приложения
+    runApp(const StudentsApp());
+  }, (error, stackTrace) {
+    // Обработка ошибок в зоне
+    GetIt.I<Talker>().handle(error, stackTrace);
   });
 }

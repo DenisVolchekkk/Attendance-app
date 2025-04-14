@@ -41,6 +41,9 @@
             <input type="text" placeholder="Дата" name="SearchAttendanceDate" value="@ViewData["SearchAttendanceDate"]" />
             <input type="text" placeholder="Дисциплина" name="SearchDisciplineName" value="@ViewData["SearchDisciplineName"]" />
             <input type="time" placeholder="Начало" name="SearchStartTime" value="@ViewData["SearchStartTime"]" />
+            <input type ="hidden" placeholder="Учитель" name="SearchTeacherName" value="@ViewData["SearchTeacherName"]" />
+            <input type="hidden" placeholder="Староста" name="SearchChiefName" value="@ViewData["SearchChiefName"]" />
+            <input type="text" placeholder="Группа" name="SearchGroupName" value="@ViewData["SearchGroupName"]" />
             <input type="submit" value="Поиск" class="btn btn-default" />
             <a asp-action="Index">Вернуться к полному списку</a>
         </p>
@@ -102,14 +105,33 @@
         }
     </tbody>
 </table>
-<a asp-action="Index"
-   asp-route-pageNumber="@(Model.PageIndex - 1)">
-    Предыдущая
-</a>
-<a asp-action="Index"
-   asp-route-pageNumber="@(Model.PageIndex + 1)">
-    Следущая
-</a>
+<div class="pagination">
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+       asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
+       asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+       asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+       asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+       asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+       asp-route-SearchGroupName="@ViewData["SearchGroupName"]"
+       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+        Предыдущая
+    </a>
+
+    <a asp-action="Index" 
+       asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+       asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
+       asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+       asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+       asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+       asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+       asp-route-SearchGroupName="@ViewData["SearchGroupName"]"
+       class="@(!Model.HasNextPage ? "disabled" : "")">
+        Следующая
+    </a>
+</div>
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {

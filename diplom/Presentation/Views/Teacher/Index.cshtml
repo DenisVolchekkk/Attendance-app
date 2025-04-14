@@ -1,27 +1,22 @@
 ﻿@{
     var authToken = Context?.Request?.Cookies["AuthToken"];
     var email = string.Empty;
-    var roles = new List<string>(); // Список для хранения ролей
+    var roles = new List<string>();
     var isAuthSuccessful = false;
 
     if (!string.IsNullOrEmpty(authToken))
     {
         var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(authToken);
-
-        // Получение email
         email = jwtToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
-
-        // Получение всех ролей
         roles = jwtToken.Claims
             .Where(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
             .Select(c => c.Value)
             .ToList();
-
         isAuthSuccessful = true;
     }
 }
-@model IEnumerable<Domain.Models.Teacher>
+@model PaginatedList<Domain.Models.Teacher>
 
 @{
     ViewData["Title"] = "Index";
@@ -36,7 +31,6 @@
     <div class="form-actions no-color">
         <p>
             <input type="text" placeholder="Преподаватель" name="SearchTeacherName" value="@ViewData["SearchTeacherName"]" />
-            <input type="text" placeholder="Факультет" name="SearchFacilityName" value="@ViewData["SearchFacilityName"]" />
             <input type="submit" value="Поиск" class="btn btn-default" /> |
             <a asp-action="Index">Вернуться к полному списку</a>
         </p>
@@ -45,38 +39,40 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-@*             <th>
-                @Html.DisplayNameFor(model => model.FacilityId)
-            </th> *@
-@*             <th>
-                @Html.DisplayNameFor(model => model.Id)
-            </th> *@
-            <th></th>
+            <th>Учитель</th>
+            <th>Действия</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-@*             <td>
-                @Html.DisplayFor(modelItem => item.Facility.Name)
-            </td> *@
-@*          <td>
-                @Html.DisplayFor(modelItem => item.Id)
-            </td> *@
-                @if (roles.Any(r => r != "Chief" && r != "Teacher"))
-            {
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Name)</td>
                 <td>
-                    @Html.ActionLink("Обновить", "Edit", new { id = item.Id }) |
-                    @Html.ActionLink("Удалить", "Delete", new { id = item.Id })
+                    <a asp-controller="Schedule" asp-action="TeacherSchedule" asp-route-teacherId="@item.Id">Расписание</a>
+                    @if (roles.Any(r => r != "Chief" && r != "Teacher"))
+                    {
+                        @Html.ActionLink("Обновить", "Edit", new { id = item.Id })
+                        @Html.ActionLink("Удалить", "Delete", new { id = item.Id })
+                    }
                 </td>
-            }
-        </tr>
-}
+            </tr>
+        }
     </tbody>
 </table>
+
+<div class="pagination">
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+        Предыдущая
+    </a>
+
+    <a asp-action="Index"
+       asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+       class="@(!Model.HasNextPage ? "disabled" : "")">
+        Следующая
+    </a>
+</div>

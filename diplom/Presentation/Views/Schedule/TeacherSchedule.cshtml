@@ -1,0 +1,48 @@
+﻿@model Dictionary<DayOfWeek, List<Domain.Models.Schedule>>
+@{
+    ViewData["Title"] = "Расписание преподавателя";
+}
+
+<h1>Расписание преподавателя: @ViewData["TeacherName"]</h1>
+
+@if (Model.Any())
+{
+    @foreach (var day in Model)
+    {
+        <h3>@day.Key</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Время</th>
+                    <th>№</th>
+                    <th>Занятие</th>
+                    <th>Группа</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int lessonNumber = 1;
+                }
+                @foreach (var schedule in day.Value)
+                {
+                    <tr>
+                        <td>@schedule.StartTime.ToString("hh\\:mm")-@schedule.EndTime.ToString("hh\\:mm")</td>
+                        <td>@(lessonNumber++)</td>
+                        <td>@schedule.Discipline.Name</td>
+                        <td>@schedule.Group.Name</td>
+                        <td>
+                            <a asp-controller="Attendance" asp-action="Index" asp-route-SearchDisciplineName="@schedule.Discipline.Name" asp-route-SearchStartTime=@schedule.StartTime
+                               asp-route-SearchTeacherName=@schedule.Teacher.Name asp-route-SearchGroupName=@schedule.Group.Name>Занятия</a>
+                         </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+else
+{
+    <div class="alert alert-info">Нет данных о расписании</div>
+}
+
+<a asp-action="Index" class="btn btn-primary">Назад к списку</a>

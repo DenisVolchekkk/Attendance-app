@@ -8,9 +8,20 @@ namespace StudyProj.Repositories.Implementations
         public ScheludeService(ApplicationContext context) : base(context)
         {
         }
-        public async Task<List<Schedule>> GetAllAsync(Schedule schedule)
+        public async Task<List<Schedule>> GetAllAsync(Schedule schedule, string currentUserName = null, bool isChief = false, bool isTeacher = false, bool isAdmin = false)
         {
             var schedules = Context.Set<Schedule>().AsQueryable();
+            if (!string.IsNullOrEmpty(currentUserName) && !isAdmin)
+            {
+                if (isTeacher)
+                {
+                    schedules = schedules.Where(a => a.Teacher.Name == currentUserName);
+                }
+                else if (isChief)
+                {
+                    schedules = schedules.Where(a => a.Group.Chief.Name == currentUserName);
+                }
+            }
             if (schedule.DayOfWeek != null)
             {
                 schedules = schedules.Where(d => d.DayOfWeek == schedule.DayOfWeek);
@@ -27,6 +38,8 @@ namespace StudyProj.Repositories.Implementations
             {
                 schedules = schedules.Where(d => d.Discipline.Name.Contains(schedule.Discipline.Name));
             }
+            schedules = schedules.OrderBy(s => s.DayOfWeek)
+                     .ThenBy(s => s.StartTime);
             return await schedules.ToListAsync();  // Асинхронное получение всех записей
         }
     }

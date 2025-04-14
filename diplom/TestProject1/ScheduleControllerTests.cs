@@ -221,12 +221,25 @@ namespace TestProject1
             };
 
             var expectedSchedules = new List<Schedule>
-        {
-            new Schedule { Id = 1, DayOfWeek = DayOfWeek.Monday, StartTime = new TimeSpan(8, 0, 0), Teacher = new Teacher { Name = "Dr. Smith" }, Discipline = new Discipline { Name = "Mathematics" } }
-        };
+    {
+        new Schedule {
+            Id = 1,
+            DayOfWeek = DayOfWeek.Monday,
+            StartTime = new TimeSpan(8, 0, 0),
+            Teacher = new Teacher { Name = "Dr. Smith" },
+            Discipline = new Discipline { Name = "Mathematics" }
+        }
+    };
 
+            // Исправленная строка мокирования:
             _mockScheduleService
-                .Setup(s => s.GetAllAsync(It.IsAny<Schedule>()))
+                .Setup(s => s.GetAllAsync(
+                    It.IsAny<Schedule>(),
+                    null,  // currentUserName
+                    false, // isChief
+                    false, // isTeacher
+                    false  // isAdmin
+                ))
                 .ReturnsAsync(expectedSchedules);
 
             // Act

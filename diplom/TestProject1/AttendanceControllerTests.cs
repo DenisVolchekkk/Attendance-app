@@ -9,6 +9,7 @@ using StudyProj.Repositories.Implementations;
 using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Assert = Xunit.Assert;
+using System.Security.Claims;
 namespace TestProject1
 {
     public class AttendanceControllerTests
@@ -218,25 +219,60 @@ namespace TestProject1
         [Fact]
         public async Task Filter_ValidRequest_ReturnsFilteredAttendances()
         {
+            // Arrange
             var testAttendance = new Attendance
             {
                 IsPresent = true,
                 AttendanceDate = DateTime.Now,
                 Student = new Student { Name = "John Doe" },
-                Schedule = new Schedule { StartTime = new TimeSpan(10, 0, 0), Discipline = new Discipline { Name = "Mathematics" } }
+                Schedule = new Schedule
+                {
+                    StartTime = new TimeSpan(10, 0, 0),
+                    Discipline = new Discipline { Name = "Mathematics" }
+                }
             };
 
             var expectedAttendances = new List<Attendance>
-        {
-            new Attendance { Id = 1, IsPresent = true, AttendanceDate = DateTime.Now, Student = new Student { Name = "John Doe" }, Schedule = new Schedule { StartTime = new TimeSpan(10, 0, 0), Discipline = new Discipline { Name = "Mathematics" } } }
-        };
+    {
+        new Attendance {
+            Id = 1,
+            IsPresent = true,
+            AttendanceDate = DateTime.Now,
+            Student = new Student { Name = "John Doe" },
+            Schedule = new Schedule {
+                StartTime = new TimeSpan(10, 0, 0),
+                Discipline = new Discipline { Name = "Mathematics" }
+            }
+        }
+    };
 
+            // Mock с учетом всех параметров
             _mockAttendanceService
-                .Setup(a => a.GetAllAsync(It.IsAny<Attendance>()))
+                .Setup(a => a.GetAllAsync(
+                    It.IsAny<Attendance>(), // attendance
+                    It.IsAny<string>(),     // currentUserName
+                    It.IsAny<bool>(),       // isChief
+                    It.IsAny<bool>(),       // isTeacher
+                    It.IsAny<bool>()        // isAdmin
+                ))
                 .ReturnsAsync(expectedAttendances);
 
+            // Mock для User.Identity
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+        new Claim(ClaimTypes.Name, "testuser"),
+        new Claim(ClaimTypes.Role, "Teacher")
+            }));
+
+            _controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = new DefaultHttpContext() { User = user }
+            };
+
+            // Act
             var result = await _controller.Filter(testAttendance) as JsonResult;
 
+            // Assert
             Assert.NotNull(result);
             var actualAttendances = Assert.IsType<List<Attendance>>(result.Value);
             Assert.Single(actualAttendances);

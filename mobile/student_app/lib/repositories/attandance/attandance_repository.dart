@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/repositories/attandance/abstract_attandance_repository.dart';
 import 'package:student_app/repositories/models/models.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'dart:convert';
+import 'package:flutter/material.dart';
 
 class AttandanceRepository implements AbstractAttandanceRepository {
   AttandanceRepository({
@@ -15,12 +17,24 @@ class AttandanceRepository implements AbstractAttandanceRepository {
   final Dio dio;
   final LazyBox<Attendance> attandanceBox;
 
-  @override
-  Future<List<Attendance>> getAttandanceList() async {
+ @override
+  Future<List<Attendance>> getAttandanceList({
+    int? day, 
+    String? groupName,
+    String? discipline,
+    TimeOfDay? attendanceTime,
+    DateTime? attendanceDate,
+  }) async {
     var attendanceList = <Attendance>[];
     try {
-      attendanceList = await _fetchAttandanceListFromApi();
-      final cryptoCoinsMap = {for (var e in attendanceList) e.studentId: e};
+      attendanceList = await _fetchAttandanceListFromApi(
+        day: day,
+        groupName: groupName,
+        discipline: discipline,
+        attendanceTime: attendanceTime,
+        attendanceDate: attendanceDate,
+      );
+      final cryptoCoinsMap = {for (var e in attendanceList) e.id: e};
       await attandanceBox.putAll(cryptoCoinsMap);
     } catch (e, st) {
       GetIt.instance<Talker>().handle(e, st);
@@ -36,20 +50,62 @@ class AttandanceRepository implements AbstractAttandanceRepository {
       throw Exception('Failed to update attendance');
     }
   }
-  Future<List<Attendance>> _fetchAttandanceListFromApi() async {
+ Future<List<Attendance>> _fetchAttandanceListFromApi({int? day, String? groupName, 
+ String? discipline, TimeOfDay? attendanceTime, DateTime? attendanceDate}) async {
     final token = await getToken();
-    final response =
-        await dio.get('http://192.168.48.51:5183/api/Attendance/GetAll',
-                options: Options(
-          headers: {
-            'Content-Type': 'application/json', // Указываем тип контента
-            'Authorization': 'Bearer $token', // Добавляем токен в заголовок Authorization
-          },
-        ),
-        );
+    if (token == null) {
+      throw Exception('Token is null');
+    }
+
+
+    final queryParameters = <String, dynamic>{};
+
+    final decodedToken = _decodeJwt(token);
+    final roles = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    final isTeacher = roles is List ? roles.contains('Teacher') : roles == 'Teacher';
+        // Добавляем фильтр по учителю, если это учитель
+    if (isTeacher) {
+      final teacherName = decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+      queryParameters['Schedule.Teacher.Name'] = teacherName;
+    }
+
+    if (groupName != null) {
+      queryParameters['Schedule.Group.Name'] = groupName;
+    }
+    if (day != null) {
+      queryParameters['Schedule.DayOfWeek'] = day;
+    }
+
+    if (discipline != null) {
+      queryParameters['Schedule.Discipline.Name'] = discipline;
+    }
+    if (attendanceDate != null) {
+      queryParameters['AttendanceDate'] = attendanceDate;
+    } 
+    if (attendanceTime != null) {
+      final timeString = '${attendanceTime.hour.toString().padLeft(2, '0')}:'
+                        '${attendanceTime.minute.toString().padLeft(2, '0')}';
+      queryParameters['Schedule.StartTime'] = timeString;
+    } 
+    // Добавляем фильтр по группе, если указана
+
+
+    final response = await dio.get(
+      'http://192.168.0.105:5183/api/Attendance/Filter',
+      queryParameters: queryParameters,
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
+    
     final List<dynamic> data = response.data;
     return data.map((json) => Attendance.fromJson(json)).toList();
   }
+
+
 
   Future<bool> _putAttendance(Attendance attendance) async {
       final jsonData = {
@@ -58,7 +114,7 @@ class AttandanceRepository implements AbstractAttandanceRepository {
       };
       final token = await getToken();
       final response = await dio.put(
-        'http://192.168.48.51:5183/api/Attendance/Put', // Убедитесь, что URL правильный
+        'http://192.168.0.105:5183/api/Attendance/Put', // Убедитесь, что URL правильный
         data: jsonData, // Преобразуем объект Attendance в JSON
         options: Options(
           headers: {
@@ -85,6 +141,98 @@ class AttandanceRepository implements AbstractAttandanceRepository {
     );
 
     return attendanceList.cast<Attendance>();
+  }
+   @override
+  Future<List<String>> getTeacherGroups() async {
+    final token = await getToken();
+    if (token == null) {
+      throw Exception('Token is null');
+    }
+
+    final queryParameters = <String, dynamic>{};
+    final decodedToken = _decodeJwt(token);
+    final roles = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    final isTeacher = roles is List ? roles.contains('Teacher') : roles == 'Teacher';
+        // Добавляем фильтр по учителю, если это учитель
+    if (isTeacher) {
+      final teacherName = decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+      queryParameters['Schedule.Teacher.Name'] = teacherName;
+    }
+
+
+    // Получаем все посещения для текущего учителя
+    final response = await dio.get(
+      'http://192.168.0.105:5183/api/Attendance/Filter',
+      queryParameters: queryParameters,
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
+    
+    final List<dynamic> data = response.data;
+    final attendances = data.map((json) => Attendance.fromJson(json)).toList();
+    
+    // Извлекаем уникальные имена групп
+    final groups = attendances
+        .map((a) => a.schedule.group.name)
+        .toSet()
+        .toList();
+    
+    return groups;
+  }
+  @override
+  Future<List<String>> getTeacherDisciplines() async {
+    final token = await getToken();
+    if (token == null) {
+      throw Exception('Token is null');
+    }
+    
+    final queryParameters = <String, dynamic>{};
+
+    final decodedToken = _decodeJwt(token);
+    final roles = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    final isTeacher = roles is List ? roles.contains('Teacher') : roles == 'Teacher';
+        // Добавляем фильтр по учителю, если это учитель
+    if (isTeacher) {
+      final teacherName = decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+      queryParameters['Schedule.Teacher.Name'] = teacherName;
+    }
+    final response = await dio.get(
+      'http://192.168.0.105:5183/api/Attendance/Filter',
+      queryParameters: queryParameters,
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
+    
+    final List<dynamic> data = response.data;
+    final attendances = data.map((json) => Attendance.fromJson(json)).toList();
+    
+    final disciplines = attendances
+        .map((a) => a.schedule.discipline.name)
+        .toSet()
+        .toList();
+    
+    return disciplines;
+  }
+  // Функция для декодирования JWT токена
+  Map<String, dynamic> _decodeJwt(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) {
+      throw Exception('Invalid token');
+    }
+    
+    final payload = parts[1];
+    final normalized = base64Url.normalize(payload);
+    final decoded = utf8.decode(base64Url.decode(normalized));
+    
+    return jsonDecode(decoded);
   }
   Future<String?> getToken() async {
       final prefs = await SharedPreferences.getInstance();

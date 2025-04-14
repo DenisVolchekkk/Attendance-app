@@ -26,7 +26,7 @@ class AttandanceTile extends StatelessWidget {
       ),
       subtitle: Text(
         '${DateFormat('yyyy-MM-dd').format(attendance.attendanceDate)} ${daysOfWeek[attendance.schedule.dayOfWeek]} ${attendance.schedule.startTime.hour.toString().padLeft(2, '0')}.${attendance.schedule.startTime.minute.toString().padLeft(2, '0')}'+
-        '-${attendance.schedule.endTime.hour.toString().padLeft(2, '0')}.${attendance.schedule.endTime.minute.toString().padLeft(2, '0')} ${attendance.schedule.discipline.name}',
+        '-${attendance.schedule.endTime.hour.toString().padLeft(2, '0')}.${attendance.schedule.endTime.minute.toString().padLeft(2, '0')} ${attendance.schedule.discipline.name} ${attendance.schedule.group.name}',
         style: theme.textTheme.labelSmall,
       ),
       trailing: Row(

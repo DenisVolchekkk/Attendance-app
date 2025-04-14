@@ -1,6 +1,6 @@
 import 'dart:async';
-
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:student_app/repositories/attandance/abstract_attandance_repository.dart';
@@ -11,12 +11,12 @@ part 'attandance_list_event.dart';
 part 'attandance_list_state.dart';
 
 class AttandanceListBloc extends Bloc<AttandanceListEvent, AttandanceListState> {
+  final AbstractAttandanceRepository attandanceRepository;
+
   AttandanceListBloc(this.attandanceRepository) : super(AttandanceListInitial()) {
     on<LoadAttandanceList>(_load);
     on<UpdateAttendanceEvent>(_onUpdateAttendance);
   }
-
-  final AbstractAttandanceRepository attandanceRepository;
 
   Future<void> _onUpdateAttendance(
     UpdateAttendanceEvent event,
@@ -26,12 +26,22 @@ class AttandanceListBloc extends Bloc<AttandanceListEvent, AttandanceListState> 
       if (state is! AttandanceListLoaded) {
         emit(AttandanceListLoading());
       }
-      // Обновите attendance в репозитории
+      
       await attandanceRepository.isPresentStudent(event.attendance);
       
-      final updatedAttandanceList = await attandanceRepository.getAttandanceList();
-      // 3. Вызываем emit с новым состоянием
-      emit(AttandanceListLoaded(attandanceList: updatedAttandanceList));
+      final currentState = state as AttandanceListLoaded;
+      final updatedAttandanceList = await attandanceRepository.getAttandanceList(day: currentState.selectedDay, 
+      groupName: currentState.selectedGroup, discipline: currentState.selectedDiscipline, 
+      attendanceDate: currentState.selectedDate, attendanceTime: currentState.selectedTime);
+      
+      emit(AttandanceListLoaded(
+        attandanceList: updatedAttandanceList,
+        selectedDay: currentState.selectedDay,
+        selectedGroup: currentState.selectedGroup, 
+        selectedDiscipline: currentState.selectedDiscipline, 
+        selectedDate: currentState.selectedDate, 
+        selectedTime: currentState.selectedTime
+      ));
     } catch (e, st) {
       emit(AttandanceListLoadingFailure(exception: e));
       GetIt.I<Talker>().handle(e, st);
@@ -45,11 +55,20 @@ class AttandanceListBloc extends Bloc<AttandanceListEvent, AttandanceListState> 
     Emitter<AttandanceListState> emit,
   ) async {
     try {
-      if (state is! AttandanceListLoaded) {
-        emit(AttandanceListLoading());
-      }
-      final attandanceList = await attandanceRepository.getAttandanceList() ;
-      emit(AttandanceListLoaded(attandanceList: attandanceList));
+      emit(AttandanceListLoading());
+      
+      final attandanceList = await attandanceRepository.getAttandanceList(day: event.day, groupName: event.groupName,
+      discipline: event.discipline, 
+      attendanceDate: event.attendanceDate, attendanceTime: event.attendanceTime);
+      
+      emit(AttandanceListLoaded(
+        attandanceList: attandanceList,
+        selectedDay: event.day,
+        selectedGroup: event.groupName,
+        selectedDiscipline: event.discipline, 
+        selectedDate: event.attendanceDate, 
+        selectedTime: event.attendanceTime
+      ));
     } catch (e, st) {
       emit(AttandanceListLoadingFailure(exception: e));
       GetIt.I<Talker>().handle(e, st);
@@ -59,8 +78,8 @@ class AttandanceListBloc extends Bloc<AttandanceListEvent, AttandanceListState> 
   }
 
   @override
-  void onError(Object error, StackTrace StackTrace) {
-    super.onError(error, StackTrace);
-    GetIt.I<Talker>().handle(error, StackTrace);
+  void onError(Object error, StackTrace stackTrace) {
+    super.onError(error, stackTrace);
+    GetIt.I<Talker>().handle(error, stackTrace);
   }
 }

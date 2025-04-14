@@ -230,5 +230,37 @@ namespace Presentation.Controllers
             }
             ViewData["GroupId"] = new SelectList(groupList, "Id", "Name", groupId);
         }
+        [HttpGet]
+        public IActionResult TeacherSchedule(int teacherId)
+        {
+            AddAuthorizationHeader();
+
+            // Получаем имя преподавателя
+            var teacherResponse = _client.GetAsync($"{_client.BaseAddress}/Teacher/GetTeacher/{teacherId}").Result;
+            if (!teacherResponse.IsSuccessStatusCode)
+            {
+                return View("Error", new ErrorViewModel { RequestId = "Преподаватель не найден" });
+            }
+            var teacher = JsonConvert.DeserializeObject<Teacher>(teacherResponse.Content.ReadAsStringAsync().Result);
+            ViewData["TeacherName"] = teacher.Name;
+
+            // Получаем расписание преподавателя
+            var scheduleResponse = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?Teacher.Name={teacher.Name}").Result;
+            if (!scheduleResponse.IsSuccessStatusCode)
+            {
+                return View("Error", new ErrorViewModel { RequestId = "Ошибка при получении расписания" });
+            }
+
+            var schedules = JsonConvert.DeserializeObject<List<Schedule>>(scheduleResponse.Content.ReadAsStringAsync().Result);
+
+            // Группируем по дням недели и фильтруем null значения
+            var groupedSchedules = schedules
+                .Where(s => s.DayOfWeek.HasValue)
+                .GroupBy(s => s.DayOfWeek.Value)
+                .OrderBy(g => g.Key)
+                .ToDictionary(g => g.Key, g => g.OrderBy(s => s.StartTime).ToList());
+
+            return View(groupedSchedules);
+        }
     }
 }

@@ -10,7 +10,7 @@ class AutorizeRepository implements AbstractAutorizeRepository {
   
   @override
   Future<Map<String, dynamic>> authentication(String email, String password) async {
-    final url = 'http://192.168.48.51:5183/api/Accounts/authenticate';
+    final url = 'http://192.168.0.105:5183/api/Accounts/authenticate';
     final headers = {
       'accept': '*/*',
       'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ class AutorizeRepository implements AbstractAutorizeRepository {
      String confirmPassword,
      String clientUri,
   ) async {
-    final url = 'http://192.168.48.51:5183/api/Accounts/register';
+    final url = 'http://192.168.0.105:5183/api/Accounts/register';
     final headers = {
       'accept': '*/*',
       'Content-Type': 'application/json',

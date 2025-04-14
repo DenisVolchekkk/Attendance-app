@@ -37,13 +37,17 @@ namespace Presentation.Controllers
             }
         }
         [HttpGet]
-        public IActionResult Index(string SearchStudentName, string SearchAttendanceDate, string SearchStartTime, string SearchDisciplineName, int? pageNumber)
+        public IActionResult Index(string SearchStudentName, string SearchAttendanceDate, string SearchStartTime, string SearchDisciplineName, string SearchTeacherName,
+            string SearchChiefName, string SearchGroupName, int? pageNumber)
         {
             AddAuthorizationHeader();
             ViewData["SearchStudentName"] = SearchStudentName;
             ViewData["SearchAttendanceDate"] = SearchAttendanceDate;
             ViewData["SearchDisciplineName"] = SearchDisciplineName;
             ViewData["SearchStartTime"] = SearchStartTime;
+            ViewData["SearchTeacherName"] = SearchTeacherName;
+            ViewData["SearchChiefName"] = SearchChiefName;
+            ViewData["SearchGroupName"] = SearchGroupName;
             TimeSpan.TryParse(SearchStartTime, out var result);
             IQueryable<Attendance> AttendanceList = null;
             HttpResponseMessage response;
@@ -56,11 +60,13 @@ namespace Presentation.Controllers
                     DateTime.TryParse(SearchAttendanceDate, out var dateTime);
                     string formattedDate = dateTime.ToString("yyyy-MM-ddTHH:mm:ss");
                     string encodedDate = WebUtility.UrlEncode(formattedDate);
-                    url = $"{_client.BaseAddress}/Attendance/Filter?AttendanceDate={encodedDate}&Student.Name={SearchStudentName}&Schedule.Discipline.Name={SearchDisciplineName}";
+                    url = $"{_client.BaseAddress}/Attendance/Filter?AttendanceDate={encodedDate}&Student.Name={SearchStudentName}&Schedule.Discipline.Name={SearchDisciplineName}&" +
+                    $"Schedule.Teacher.Name={SearchTeacherName}&Schedule.Group.Chief.Name={SearchChiefName}&Schedule.Group.Name={SearchGroupName}";
             }
             else 
             {
-                url = $"{_client.BaseAddress}/Attendance/Filter?AttendanceDate={SearchAttendanceDate}&Student.Name={SearchStudentName}&Schedule.Discipline.Name={SearchDisciplineName}";
+                url = $"{_client.BaseAddress}/Attendance/Filter?AttendanceDate={SearchAttendanceDate}&Student.Name={SearchStudentName}&Schedule.Discipline.Name={SearchDisciplineName}&" +
+                    $"Schedule.Teacher.Name={SearchTeacherName}&Schedule.Group.Chief.Name={SearchChiefName}&Schedule.Group.Name={SearchGroupName}";
             }
             if (result.TotalMinutes != 0)
             {
