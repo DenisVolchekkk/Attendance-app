@@ -21,10 +21,10 @@
                 <label asp-for="ChiefId" class="control-label"></label>
                 <select asp-for="ChiefId" class="form-control" asp-items="ViewBag.ChiefId"></select>
             </div>
-            <div class="form-group">
+@*             <div class="form-group">
                 <label asp-for="FacilityId" class="control-label"></label>
                 <select asp-for="FacilityId" class="form-control" asp-items="ViewBag.FacilityId"></select>
-            </div>
+            </div> *@
 @*             <div class="form-group">
                 <label asp-for="Id" class="control-label"></label>
                 <input asp-for="Id" class="form-control" />
@@ -36,7 +36,15 @@
         </form>
     </div>
 </div>
-
+<form asp-action="ImportFromExcel" method="post" enctype="multipart/form-data" class="mt-3">
+    <div class="form-group">
+        <div class="custom-file">
+            <input type="file" name="file" class="custom-file-input" id="customFile" required>
+            <label class="custom-file-label" for="customFile">Выберите файл Excel</label>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Импортировать</button>
+</form>
 <div>
     <a asp-action="Index">Вернуться к списку</a>
 </div>

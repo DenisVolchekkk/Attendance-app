@@ -10,7 +10,7 @@ namespace Presentation.Controllers
 {
     public class FacilityController : Controller
     {
-        Uri baseAddress = new Uri("http://192.168.0.105:5183/api");
+        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
         private readonly HttpClient _client;
 
         public FacilityController()
@@ -36,30 +36,44 @@ namespace Presentation.Controllers
             }
         }
         [HttpGet]
-        public IActionResult Index(string searchString, int? pageNumber)
+        public IActionResult Index(string sortOrder, string searchString, int? pageNumber, int pageSize = 20)
         {
             AddAuthorizationHeader();
-            ViewData["CurrentFilter"] = searchString;
-            IQueryable<Facility> FacilityList = null;
 
+            // Параметры сортировки
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = string.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["CurrentPageSize"] = pageSize;
+            ViewData["CurrentFilter"] = searchString;
+
+            IQueryable<Facility> FacilityList = null;
             HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Facility/Filter?Name=" + searchString).Result;
+
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content.ReadAsStringAsync().Result;
                 FacilityList = JsonConvert.DeserializeObject<List<Facility>>(data).AsQueryable();
+
+                // Применяем сортировку
+                switch (sortOrder)
+                {
+                    case "name_desc":
+                        FacilityList = FacilityList.OrderByDescending(f => f.Name);
+                        break;
+                    default:
+                        FacilityList = FacilityList.OrderBy(f => f.Name);
+                        break;
+                }
             }
             else
             {
-                // Return an error page with the status code in the ViewModel
                 int statusCode = (int)response.StatusCode;
                 var errorViewModel = new ErrorViewModel
                 {
                     RequestId = $"Error code: {statusCode}"
                 };
-
                 return View("Error", errorViewModel);
             }
-            int pageSize = 20;
 
             return View(PaginatedList<Facility>.Create(FacilityList.AsNoTracking(), pageNumber ?? 1, pageSize));
         }

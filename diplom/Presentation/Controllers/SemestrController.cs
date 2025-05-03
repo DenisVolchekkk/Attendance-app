@@ -7,7 +7,7 @@ namespace Presentation.Controllers
 {
     public class SemestrController : Controller
     {
-        Uri baseAddress = new Uri("http://192.168.0.105:5183/api");
+        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
         private readonly HttpClient _client;
 
         public SemestrController()

@@ -28,7 +28,13 @@
         </form>
     </div>
 </div>
-
+<form asp-action="AddDisciplinesFromFile" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label>Загрузить учебный план (Excel):</label>
+        <input type="file" name="file" class="form-control-file" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Добавить дисциплины из файла</button>
+</form>
 <div>
     <a asp-action="Index">Вернуться к списку</a>
 </div>

@@ -14,12 +14,10 @@ namespace Domain.ViewModel
         [Required(ErrorMessage = "Введите группу")]
         [Display(Name = "Название")]
         public string? Name { get; set; }
-        [Required(ErrorMessage = "Введите Старосту")]
         [Display(Name = "Староста")]
-        public int ChiefId { get; set; }
-        [Required(ErrorMessage = "Введите факультет")]
+        public int? ChiefId { get; set; }
         [Display(Name = "Факультет")]
-        public int FacilityId { get; set; }
+        public int? FacilityId { get; set; }
         [ForeignKey("ChiefId")]
         public virtual Chief? Chief { get; set; }
         [ForeignKey("FacilityId")]

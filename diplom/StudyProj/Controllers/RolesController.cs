@@ -20,7 +20,7 @@ namespace StudyProj.Controllers
         [HttpGet]
         public async Task<IActionResult> UserList()
         {
-            return new JsonResult(await _userManager.Users.ToListAsync());
+            return new JsonResult(await _userManager.Users.Include(u => u.Facility).ToListAsync());
         }
         [HttpGet]
         public async Task<IActionResult> RoleList()
@@ -28,7 +28,7 @@ namespace StudyProj.Controllers
             return new JsonResult(await _roleManager.Roles.ToListAsync());
         }
         [HttpPut]
-        public async Task<IActionResult> Put(string userId, List<string> roles)
+        public async Task<IActionResult> Put(string userId, List<string> roles, int? facilityId)
         {
             // получаем пользователя
             User user = await _userManager.FindByIdAsync(userId);
@@ -37,17 +37,25 @@ namespace StudyProj.Controllers
                 return NotFound($"User with ID {userId} not found.");
             }
 
-            // получем список ролей пользователя
+            // обработка ролей
             var userRoles = await _userManager.GetRolesAsync(user);
-            // получаем все роли
-            var allRoles = _roleManager.Roles.ToList();
-            // получаем список ролей, которые были добавлены
             var addedRoles = roles.Except(userRoles);
-            // получаем роли, которые были удалены
             var removedRoles = userRoles.Except(roles);
 
             await _userManager.AddToRolesAsync(user, addedRoles);
             await _userManager.RemoveFromRolesAsync(user, removedRoles);
+
+            // обработка факультета
+            if (facilityId.HasValue)
+            {
+                user.FacilityId = facilityId;
+                await _userManager.UpdateAsync(user);
+            }
+            else if (user.FacilityId != null)
+            {
+                user.FacilityId = null;
+                await _userManager.UpdateAsync(user);
+            }
 
             return new JsonResult($"Update successful for user with ID: {user.Id}");
         }

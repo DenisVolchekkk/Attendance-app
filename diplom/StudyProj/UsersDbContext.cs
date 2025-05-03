@@ -7,6 +7,8 @@ namespace StudyProj
 {
     public class UsersDbContext : IdentityDbContext<User, Role, string>
     {
+        public DbSet<Facility> Facilities { get; set; }
+
         public UsersDbContext(DbContextOptions<UsersDbContext> options)
         : base(options)
         {

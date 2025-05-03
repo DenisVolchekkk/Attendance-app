@@ -91,7 +91,7 @@ class AttandanceRepository implements AbstractAttandanceRepository {
 
 
     final response = await dio.get(
-      'http://192.168.0.105:5183/api/Attendance/Filter',
+      'http://ggtuapi.runasp.net/api/Attendance/Filter',
       queryParameters: queryParameters,
       options: Options(
         headers: {
@@ -114,7 +114,7 @@ class AttandanceRepository implements AbstractAttandanceRepository {
       };
       final token = await getToken();
       final response = await dio.put(
-        'http://192.168.0.105:5183/api/Attendance/Put', // Убедитесь, что URL правильный
+        'http://ggtuapi.runasp.net/api/Attendance/Put', // Убедитесь, что URL правильный
         data: jsonData, // Преобразуем объект Attendance в JSON
         options: Options(
           headers: {
@@ -162,7 +162,7 @@ class AttandanceRepository implements AbstractAttandanceRepository {
 
     // Получаем все посещения для текущего учителя
     final response = await dio.get(
-      'http://192.168.0.105:5183/api/Attendance/Filter',
+      'http://ggtuapi.runasp.net/api/Attendance/Filter',
       queryParameters: queryParameters,
       options: Options(
         headers: {
@@ -201,7 +201,7 @@ class AttandanceRepository implements AbstractAttandanceRepository {
       queryParameters['Schedule.Teacher.Name'] = teacherName;
     }
     final response = await dio.get(
-      'http://192.168.0.105:5183/api/Attendance/Filter',
+      'http://ggtuapi.runasp.net/api/Attendance/Filter',
       queryParameters: queryParameters,
       options: Options(
         headers: {

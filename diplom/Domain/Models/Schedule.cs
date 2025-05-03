@@ -13,6 +13,8 @@ namespace Domain.Models
         [JsonConverter(typeof(TimeSpanConverter))]
         [DisplayFormat(DataFormatString = "{0:hh\\:mm}")]
         public  TimeSpan EndTime { get; set; }
+        [Display(Name = "Аудитория")]
+        public string? Auditory { get; set; }
         [Display(Name = "День недели")]
         public DayOfWeek? DayOfWeek { get; set; }
         [Display(Name = "Группа")]

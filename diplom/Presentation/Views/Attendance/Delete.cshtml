@@ -2,6 +2,18 @@
 
 @{
     ViewData["Title"] = "Delete";
+
+    // Словарь для перевода дней недели
+    var russianDayNames = new Dictionary<DayOfWeek, string>
+    {
+        { DayOfWeek.Sunday, "Воскресенье" },
+        { DayOfWeek.Monday, "Понедельник" },
+        { DayOfWeek.Tuesday, "Вторник" },
+        { DayOfWeek.Wednesday, "Среда" },
+        { DayOfWeek.Thursday, "Четверг" },
+        { DayOfWeek.Friday, "Пятница" },
+        { DayOfWeek.Saturday, "Суббота" }
+    };
 }
 
 <h1>Удаление</h1>
@@ -11,16 +23,16 @@
     <h4>Посещение</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Student.Name)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Student.Name)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Schedule.StartTime)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Schedule.StartTime)
         </dd>
         <dt class="col-sm-2">
@@ -32,31 +44,30 @@
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Schedule.DayOfWeek)
         </dt>
-
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Schedule.DayOfWeek)
+            @if (Model.Schedule?.DayOfWeek != null)
+            {
+                @russianDayNames[Model.Schedule.DayOfWeek.Value]
+            }
+            else
+            {
+                <text>День не указан</text>
+            }
         </dd>
-
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.AttendanceDate)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.AttendanceDate)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.IsPresent)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.IsPresent)
         </dd>
-@*         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Id)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Id)
-        </dd> *@
     </dl>
-    
+
     <form asp-action="Delete">
         <input type="submit" value="Удалить" class="btn btn-danger" /> |
         <a asp-action="Index">Вернуться к полному списку</a>

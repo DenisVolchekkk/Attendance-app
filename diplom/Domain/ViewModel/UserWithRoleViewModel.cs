@@ -12,6 +12,8 @@ namespace Domain.ViewModel
         public string Id { get; set; }
         public string Username { get; set; }
         public string FullName { get; set; }
+        public string? Facility { get; set; }
+        public int? FacilityId { get; set; }
         public IQueryable<string> Role { get; set; }
     }
 

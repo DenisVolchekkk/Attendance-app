@@ -10,7 +10,7 @@ namespace Presentation.Controllers
 {
     public class TeacherController : Controller
     {
-        Uri baseAddress = new Uri("http://192.168.0.105:5183/api");
+        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
         private readonly HttpClient _client;
 
         public TeacherController()
@@ -35,33 +35,45 @@ namespace Presentation.Controllers
                 _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
         }
-                [HttpGet]
-        public IActionResult Index(string SearchTeacherName, int? pageNumber)
+        [HttpGet]
+        public IActionResult Index(string sortOrder, string searchTeacherName, int? pageNumber, int pageSize = 20)
         {
             AddAuthorizationHeader();
 
-            ViewData["SearchTeacherName"] = SearchTeacherName;
-            //ViewData["SearchFacilityName"] = SearchFacilityName;
-            IQueryable<Teacher> TeacherList = null;
+            // Параметры сортировки
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = string.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["CurrentPageSize"] = pageSize;
+            ViewData["SearchTeacherName"] = searchTeacherName;
 
-            HttpResponseMessage response = _client.GetAsync($"{_client.BaseAddress}/Teacher/Filter?Name={SearchTeacherName}").Result;
+            IQueryable<Teacher> TeacherList = null;
+            HttpResponseMessage response = _client.GetAsync($"{_client.BaseAddress}/Teacher/Filter?Name={searchTeacherName}").Result;
+
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content.ReadAsStringAsync().Result;
                 TeacherList = JsonConvert.DeserializeObject<List<Teacher>>(data).AsQueryable();
+
+                // Применяем сортировку
+                switch (sortOrder)
+                {
+                    case "name_desc":
+                        TeacherList = TeacherList.OrderByDescending(t => t.Name);
+                        break;
+                    default:
+                        TeacherList = TeacherList.OrderBy(t => t.Name);
+                        break;
+                }
             }
             else
             {
-                // Return an error page with the status code in the ViewModel
                 int statusCode = (int)response.StatusCode;
                 var errorViewModel = new ErrorViewModel
                 {
                     RequestId = $"Error code: {statusCode}"
                 };
-
                 return View("Error", errorViewModel);
             }
-            int pageSize = 20;
 
             return View(PaginatedList<Teacher>.Create(TeacherList.AsNoTracking(), pageNumber ?? 1, pageSize));
         }

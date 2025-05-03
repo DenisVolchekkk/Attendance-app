@@ -5,12 +5,14 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Domain.ViewModel;
 using Presentation.Models;
-
+using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 namespace Presentation.Controllers
 {
     public class DisciplineController : Controller
     {
-        Uri baseAddress = new Uri("http://192.168.0.105:5183/api");
+        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
         private readonly HttpClient _client;
 
         public DisciplineController()
@@ -38,30 +40,44 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(string searchString, int? pageNumber)
+        public IActionResult Index(string sortOrder, string searchString, int? pageNumber, int pageSize = 20)
         {
             AddAuthorizationHeader();
-            ViewData["CurrentFilter"] = searchString;
-            IQueryable<Discipline> DisciplineList = null;
 
+            // Параметры сортировки
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = string.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["CurrentPageSize"] = pageSize;
+            ViewData["CurrentFilter"] = searchString;
+
+            IQueryable<Discipline> DisciplineList = null;
             HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Discipline/Filter?Name=" + searchString).Result;
+
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content.ReadAsStringAsync().Result;
                 DisciplineList = JsonConvert.DeserializeObject<List<Discipline>>(data).AsQueryable();
+
+                // Применяем сортировку
+                switch (sortOrder)
+                {
+                    case "name_desc":
+                        DisciplineList = DisciplineList.OrderByDescending(d => d.Name);
+                        break;
+                    default:
+                        DisciplineList = DisciplineList.OrderBy(d => d.Name);
+                        break;
+                }
             }
             else
             {
-                // Return an error page with the status code in the ViewModel
                 int statusCode = (int)response.StatusCode;
                 var errorViewModel = new ErrorViewModel
                 {
                     RequestId = $"Error code: {statusCode}"
                 };
-
                 return View("Error", errorViewModel);
             }
-            int pageSize = 20;
 
             return View(PaginatedList<Discipline>.Create(DisciplineList.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
@@ -174,6 +190,127 @@ namespace Presentation.Controllers
             }
 
         }
+        [HttpPost]
+        public async Task<IActionResult> AddDisciplinesFromFile(IFormFile file)
+        {
+            try
+            {
+                AddAuthorizationHeader();
 
+                if (file == null || file.Length == 0)
+                {
+                    TempData["errorMessage"] = "Файл не выбран или пуст.";
+                    return RedirectToAction("Index");
+                }
+
+                List<string> existingDisciplines = await LoadExistingDisciplinesAsync();
+                if (existingDisciplines == null)
+                {
+                    TempData["errorMessage"] = "Ошибка при загрузке списка дисциплин из БД.";
+                    return RedirectToAction("Index");
+                }
+
+                var disciplinesFromFile = ExtractDisciplinesFromFile(file);
+                if (disciplinesFromFile.Count == 0)
+                {
+                    TempData["errorMessage"] = "В файле нет допустимых дисциплин.";
+                    return RedirectToAction("Index");
+                }
+
+                var newDisciplines = disciplinesFromFile
+                    .Where(d => !existingDisciplines.Contains(d, StringComparer.OrdinalIgnoreCase))
+                    .Distinct()
+                    .ToList();
+
+                // 4. Добавляем новые дисциплины в БД
+                if (newDisciplines.Count == 0)
+                {
+                    TempData["successMessage"] = "Все дисциплины из файла уже есть в базе.";
+                    return RedirectToAction("Index");
+                }
+
+                foreach (var disciplineName in newDisciplines)
+                {
+                    var discipline = new DisciplineViewModel { Name = disciplineName };
+                    string data = JsonConvert.SerializeObject(discipline);
+                    var content = new StringContent(data, Encoding.UTF8, "application/json");
+
+                    var response = await _client.PostAsync(_client.BaseAddress + "/Discipline/Post", content);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        TempData["errorMessage"] = $"Ошибка при добавлении дисциплины: {disciplineName}";
+                        return RedirectToAction("Index");
+                    }
+                }
+
+                TempData["successMessage"] = $"Добавлено {newDisciplines.Count} новых дисциплин.";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                TempData["errorMessage"] = $"Ошибка: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
+
+        // Загружает существующие дисциплины из БД
+        private async Task<List<string>> LoadExistingDisciplinesAsync()
+        {
+            var response = await _client.GetAsync(_client.BaseAddress + "/Discipline/GetAll");
+            if (!response.IsSuccessStatusCode) return null;
+
+            string json = await response.Content.ReadAsStringAsync();
+            var disciplines = JsonConvert.DeserializeObject<List<Discipline>>(json);
+            return disciplines.Select(d => d.Name).ToList();
+        }
+
+        // Извлекает дисциплины из файла с фильтрацией
+        private List<string> ExtractDisciplinesFromFile(IFormFile file)
+        {
+            var disciplines = new List<string>();
+
+            using (var stream = file.OpenReadStream())
+            {
+                IWorkbook workbook = file.FileName.EndsWith(".xlsx")
+                    ? new XSSFWorkbook(stream)
+                    : new HSSFWorkbook(stream);
+
+                var sheet = workbook.GetSheetAt(0);
+
+                for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
+                {
+                    var row = sheet.GetRow(rowIndex);
+                    if (row == null) continue;
+
+                    var cell = row.GetCell(1); // Столбец B
+                    if (cell == null) continue;
+
+                    string cellValue = cell.ToString().Trim();
+                    if (IsValidDiscipline(cellValue))
+                    {
+                        disciplines.Add(cellValue);
+                    }
+                }
+            }
+
+            return disciplines;
+        }
+
+        // Проверяет, является ли строка валидной дисциплиной
+        private bool IsValidDiscipline(string cellValue)
+        {
+            if (string.IsNullOrWhiteSpace(cellValue))
+                return false;
+
+            string[] invalidPatterns =
+            {
+        "УЧЕБНЫЙ", "Группа", "Специальность", "№ п.п.",
+        "Наименование дисциплины", "Учебные занятия",
+        "Экзамены", "Практика", "#NULL!", "Недель"
+    };
+
+            return !invalidPatterns.Any(p =>
+                cellValue.Contains(p, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }

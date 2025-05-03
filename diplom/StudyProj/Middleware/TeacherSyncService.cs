@@ -39,11 +39,11 @@ namespace StudyProj.Middleware
 
             if (teacherRoleId == null)
             {
-                Console.WriteLine("Роль 'Учитель' не найдена!");
+                Console.WriteLine("Роль 'Преподаватель' не найдена!");
                 return;
             }
 
-            // Получаем пользователей с ролью "Учитель"
+            // Получаем пользователей с ролью "Преподаватель"
             var teachers = await (from user in identityContext.Users
                                   join userRole in identityContext.UserRoles
                                   on user.Id equals userRole.UserId
@@ -55,7 +55,7 @@ namespace StudyProj.Middleware
                                       user.FatherName
                                   }).ToListAsync();
 
-            // Проверяем, есть ли учитель уже во второй базе
+            // Проверяем, есть ли Преподаватель уже во второй базе
             foreach (var teacher in teachers)
             {
                 bool exists = await appContext.Teachers

@@ -18,7 +18,7 @@ class Group extends Equatable{
   @HiveField(1)
   final String name;
   @HiveField(2)
-  final int chiefId;
+  final int? chiefId;
   @HiveField(3)
   final int facilityId;
 
@@ -27,7 +27,7 @@ class Group extends Equatable{
   Map<String, dynamic> toJson() =>  _$GroupToJson(this); 
 
   @override
-  List<Object> get props => [id, name, chiefId, facilityId];
+  List<Object> get props => [id, name, facilityId];
 
 
 }

@@ -7,13 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Presentation.Models;
 using System.Data;
+using System.Security.Claims;
 using System.Text;
 
 namespace Presentation.Controllers
 {
     public class RolesController : Controller
     {
-        Uri baseAddress = new Uri("http://192.168.0.105:5183/api");
+        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
         private readonly HttpClient _client;
 
         public RolesController()
@@ -21,9 +22,20 @@ namespace Presentation.Controllers
             _client = new HttpClient();
             _client.BaseAddress = baseAddress;
         }
+        private void AddAuthorizationHeader()
+        {
+            var token = Request.Cookies["AuthToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+
+                _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+        }
         [HttpGet]
         public async Task<IActionResult> UserList(int? pageNumber)
         {
+            AddAuthorizationHeader();
             IQueryable<User> users = null;
 
             HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Roles/UserList").Result;
@@ -71,7 +83,8 @@ namespace Presentation.Controllers
                     Id = user.Id,
                     Username = user.UserName,
                     FullName = $"{user.LastName} {user.FirstName} {user.FatherName}",
-                    Role = roles
+                    Role = roles,
+                    Facility = user.Facility?.Name
                 });
             }
 
@@ -83,6 +96,7 @@ namespace Presentation.Controllers
         [HttpGet]
         public async Task<IActionResult> RoleList(int? pageNumber)
         {
+            AddAuthorizationHeader();
             IQueryable<Role> RoleList = null;
 
             HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Roles/RoleList").Result;
@@ -107,23 +121,36 @@ namespace Presentation.Controllers
             return View(PaginatedList<Role>.Create(RoleList.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
         [HttpGet]
-        public async Task<IActionResult> Edit(string id, List<string> Roles)
+        public async Task<IActionResult> Edit(string id, List<string> Roles, int? facilityId)
         {
+            AddAuthorizationHeader();
             try
-            { 
-                HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Roles/RoleList").Result;
-                List<Role> roles = new List<Role>();
+            {
+                HttpResponseMessage rolesResponse = _client.GetAsync(_client.BaseAddress + "/Roles/RoleList").Result;
+                HttpResponseMessage facilitiesResponse = _client.GetAsync(_client.BaseAddress + "/Facility/GetAll").Result;
 
-                if (response.IsSuccessStatusCode)
+                List<Role> roles = new List<Role>();
+                List<Facility> facilities = new List<Facility>();
+
+                if (rolesResponse.IsSuccessStatusCode)
                 {
-                    string data = await response.Content.ReadAsStringAsync();
-                    roles = JsonConvert.DeserializeObject<List<Role>>(data);
+                    string rolesData = await rolesResponse.Content.ReadAsStringAsync();
+                    roles = JsonConvert.DeserializeObject<List<Role>>(rolesData);
                 }
+
+                if (facilitiesResponse.IsSuccessStatusCode)
+                {
+                    string facilitiesData = await facilitiesResponse.Content.ReadAsStringAsync();
+                    facilities = JsonConvert.DeserializeObject<List<Facility>>(facilitiesData);
+                }
+
                 RoleViewModel viewModel = new RoleViewModel
                 {
                     Id = id,
                     RoleList = roles,
-                    Roles = Roles
+                    Roles = Roles,
+                    SelectedFacilityId = facilityId,
+                    Facilities = facilities
                 };
                 return View(viewModel);
             }
@@ -134,31 +161,38 @@ namespace Presentation.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> UpdateRoles(RoleViewModel newRoles)
+        public async Task<IActionResult> UpdateRoles(RoleViewModel model)
         {
-            // Обработка обновленных данных
-            // Пример сохранения изменений
-            if (newRoles.Roles != null)
+            AddAuthorizationHeader();
+            bool requireRelogin = false;
+
+            if (model.Roles != null)
             {
-                var url = _client.BaseAddress + $"/Roles/Put?userId={newRoles.Id}";
+                var url = _client.BaseAddress + $"/Roles/Put?userId={model.Id}&facilityId={model.SelectedFacilityId}";
 
-                // Create a list of roles
-
-                // Serialize the list to a JSON string
-                var jsonContent = JsonConvert.SerializeObject(newRoles.Roles);
-
+                var jsonContent = JsonConvert.SerializeObject(model.Roles);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
                 var response = await _client.PutAsync(url, content);
-                // Логика сохранения выбранных ролей
+
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["Success"] = "Roles updated successfully!";
+                    // Проверяем, меняются ли права текущего пользователя
+                    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                        requireRelogin = true;
+
+                        TempData["Success"] = "Данные успешно обновлены! Если вы обновили свои права перайдите на аккаунт или дождитесь окончания сессии.";
                 }
                 else
                 {
-                    TempData["Error"] = "Failed to update roles.";
+                    TempData["Error"] = "Ошибка при обновлении данных.";
                 }
+            }
+
+            if (requireRelogin)
+            {
+                // Добавляем флаг для отображения специального уведомления
+                TempData["RequireRelogin"] = true;
             }
 
             return RedirectToAction("UserList");

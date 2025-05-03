@@ -11,7 +11,7 @@ namespace Presentation.Controllers
 {
     public class StudentController : Controller
     {
-        Uri baseAddress = new Uri("http://192.168.0.105:5183/api");
+        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
         private readonly HttpClient _client;
 
         public StudentController()
@@ -37,37 +37,65 @@ namespace Presentation.Controllers
             }
         }
 
-                [HttpGet]
-        public IActionResult Index(string SearchStudentName, string SearchGroupName, int? pageNumber)
+        [HttpGet]
+        public IActionResult Index(string sortOrder, string searchStudentName, string searchGroupName, int? pageNumber, int pageSize = 20)
         {
             AddAuthorizationHeader();
 
-            ViewData["SearchStudentName"] = SearchStudentName;
-            ViewData["SearchGroupName"] = SearchGroupName;
-            IQueryable<Student> StudentList = null;
+            // Параметры сортировки
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["StudentNameSortParm"] = sortOrder == "student" ? "student_desc" : "student";
+            ViewData["GroupNameSortParm"] = sortOrder == "group" ? "group_desc" : "group";
+            ViewData["CurrentPageSize"] = pageSize;
 
-            HttpResponseMessage response = _client.GetAsync($"{_client.BaseAddress}/Student/Filter?Name={SearchStudentName}&Group.Name={SearchGroupName}").Result;
+            // Параметры поиска
+            ViewData["SearchStudentName"] = searchStudentName;
+            ViewData["SearchGroupName"] = searchGroupName;
+
+            IQueryable<Student> StudentList = null;
+            HttpResponseMessage response = _client.GetAsync($"{_client.BaseAddress}/Student/Filter?Name={searchStudentName}&Group.Name={searchGroupName}").Result;
+
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content.ReadAsStringAsync().Result;
                 StudentList = JsonConvert.DeserializeObject<List<Student>>(data).AsQueryable();
+                StudentList = ApplySorting(StudentList, sortOrder);
+
             }
             else
             {
-                // Return an error page with the status code in the ViewModel
                 int statusCode = (int)response.StatusCode;
                 var errorViewModel = new ErrorViewModel
                 {
                     RequestId = $"Error code: {statusCode}"
                 };
-
                 return View("Error", errorViewModel);
             }
-            int pageSize = 20;
 
             return View(PaginatedList<Student>.Create(StudentList.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
-
+        private IQueryable<Student> ApplySorting(IQueryable<Student> StudentList, string sortOrder)
+        {
+            // Применяем сортировку
+            switch (sortOrder)
+            {
+                case "student":
+                    StudentList = StudentList.OrderBy(s => s.Name);
+                    return StudentList;
+                case "student_desc":
+                    StudentList = StudentList.OrderByDescending(s => s.Name);
+                    return StudentList;
+                case "group":
+                    StudentList = StudentList.OrderBy(s => s.Group.Name);
+                    return StudentList;
+                case "group_desc":
+                    StudentList = StudentList.OrderByDescending(s => s.Group.Name);
+                    return StudentList;
+                default:
+                    StudentList = StudentList.OrderBy(s => s.Name);
+                    return StudentList;
+            }
+        }
         [HttpGet]
         public IActionResult Create()
         {

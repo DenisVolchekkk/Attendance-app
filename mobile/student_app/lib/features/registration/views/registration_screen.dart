@@ -137,7 +137,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               email: emailController.text,
                               password: passwordController.text,
                               confirmPassword: confirmPasswordController.text,
-                              clientUri: 'http://192.168.0.105:5183/api/Accounts/emailconfirmation',
+                              clientUri: 'http://ggtuapi.runasp.net/api/Accounts/emailconfirmation',
                             ));
                           },
                           child: Text('Зарегистрироваться'),

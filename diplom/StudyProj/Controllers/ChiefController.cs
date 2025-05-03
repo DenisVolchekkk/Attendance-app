@@ -20,7 +20,6 @@ namespace StudyProj.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
-
         {
             return new JsonResult(await Chiefs.GetAllAsync());
         }

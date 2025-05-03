@@ -30,16 +30,39 @@
 <form asp-action="Index" method="get">
     <div class="form-actions no-color">
         <p>
-            <input type="text" placeholder="Преподаватель" name="SearchTeacherName" value="@ViewData["SearchTeacherName"]" />
-            <input type="submit" value="Поиск" class="btn btn-default" /> |
-            <a asp-action="Index">Вернуться к полному списку</a>
+            <input type="text" placeholder="Преподаватель" name="searchTeacherName" value="@ViewData["SearchTeacherName"]" />
+
+            <label for="pageSize">Записей:</label>
+            <input type="number" id="pageSize" name="pageSize"
+                   min="1" max="1000" step="1"
+                   value="@(ViewData["CurrentPageSize"] ?? 20)"
+                   style="width: 60px;" />
+
+            <input type="submit" value="Поиск" class="btn btn-default" />
+            <a asp-action="Index" class="btn btn-link">Сбросить</a>
         </p>
     </div>
 </form>
+
 <table class="table">
     <thead>
         <tr>
-            <th>Учитель</th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["NameSortParm"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-searchTeacherName="@ViewData["SearchTeacherName"]">
+                    Преподаватель
+                    @if (ViewData["CurrentSort"]?.ToString() == "name_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else
+                    {
+                        <span>▲</span>
+                    }
+                </a>
+            </th>
             <th>Действия</th>
         </tr>
     </thead>
@@ -52,7 +75,9 @@
                     <a asp-controller="Schedule" asp-action="TeacherSchedule" asp-route-teacherId="@item.Id">Расписание</a>
                     @if (roles.Any(r => r != "Chief" && r != "Teacher"))
                     {
+                        @: |
                         @Html.ActionLink("Обновить", "Edit", new { id = item.Id })
+                        @: |
                         @Html.ActionLink("Удалить", "Delete", new { id = item.Id })
                     }
                 </td>
@@ -63,16 +88,36 @@
 
 <div class="pagination">
     <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-pageSize="@ViewData["CurrentPageSize"]"
        asp-route-pageNumber="@(Model.PageIndex - 1)"
-       asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+       asp-route-searchTeacherName="@ViewData["SearchTeacherName"]"
        class="@(!Model.HasPreviousPage ? "disabled" : "")">
         Предыдущая
     </a>
 
     <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-pageSize="@ViewData["CurrentPageSize"]"
        asp-route-pageNumber="@(Model.PageIndex + 1)"
-       asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+       asp-route-searchTeacherName="@ViewData["SearchTeacherName"]"
        class="@(!Model.HasNextPage ? "disabled" : "")">
         Следующая
     </a>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Проверка значения при отправке формы
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const pageSizeInput = document.getElementById('pageSize');
+                if (pageSizeInput.value < 1) {
+                    pageSizeInput.value = 1;
+                } else if (pageSizeInput.value > 1000) {
+                    pageSizeInput.value = 1000;
+                }
+            });
+        });
+    </script>
+}

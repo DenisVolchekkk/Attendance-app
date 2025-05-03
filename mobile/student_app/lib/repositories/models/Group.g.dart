@@ -19,7 +19,7 @@ class GroupAdapter extends TypeAdapter<Group> {
     return Group(
       id: fields[0] as int,
       name: fields[1] as String,
-      chiefId: fields[2] as int,
+      chiefId: fields[2] as int?,
       facilityId: fields[3] as int,
     );
   }
@@ -56,7 +56,7 @@ class GroupAdapter extends TypeAdapter<Group> {
 Group _$GroupFromJson(Map<String, dynamic> json) => Group(
       id: (json['id'] as num).toInt(),
       name: json['name'] as String,
-      chiefId: (json['chiefId'] as num).toInt(),
+      chiefId: (json['chiefId'] as num?)?.toInt(),
       facilityId: (json['facilityId'] as num).toInt(),
     );
 

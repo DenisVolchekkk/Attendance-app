@@ -9,7 +9,7 @@ namespace Presentation.Controllers
 {
     public class RegisterController : Controller
     {
-        Uri baseAddress = new Uri("http://192.168.0.105:5183/api");
+        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
         private readonly HttpClient _client;
 
         public RegisterController()
@@ -30,7 +30,7 @@ namespace Presentation.Controllers
         {
             try
             {
-                user.ClientUri = "http://192.168.0.105:5183/api/Accounts/emailconfirmation";
+                user.ClientUri = "http://ggtuapi.runasp.net/api/Accounts/emailconfirmation";
                 string data = JsonConvert.SerializeObject(user);
 
                 StringContent content = new StringContent(data, Encoding.UTF8, "application/json");
@@ -41,6 +41,13 @@ namespace Presentation.Controllers
                     TempData["successMessage"] = "Проверьте свою почту";
                     return RedirectToAction("Authentication");
                 }
+                else
+                {
+                    string errorContent = response.Content.ReadAsStringAsync().Result;
+
+                    TempData["errorMessage"] = $"Error: {response.StatusCode} - {errorContent}";
+                    return View();
+                }
             }
             catch (Exception ex)
             {
@@ -48,7 +55,6 @@ namespace Presentation.Controllers
                 return View();
             }
 
-            return View();
         }
         [HttpGet]
         public IActionResult Authentication()
@@ -76,7 +82,7 @@ namespace Presentation.Controllers
                         Response.Cookies.Append("AuthToken", result.Token, new CookieOptions
                         {
                             HttpOnly = true, // Защита от доступа через JavaScript
-                            Secure = true,   // Использовать только для HTTPS
+                            Secure = false,   // Использовать только для HTTPS
                             Expires = DateTimeOffset.UtcNow.AddHours(1) // Время действия токена
                         });
 
@@ -91,6 +97,14 @@ namespace Presentation.Controllers
                         return RedirectToAction("Index", "Home"); // Перенаправление после успешной аутентификации
                     }
                 }
+                else
+                {
+                        string errorContent = response.Content.ReadAsStringAsync().Result;
+
+                        TempData["errorMessage"] = $"Uncorrect login or password";
+                        return View();
+                }
+
             }
             catch (Exception ex)
             {
@@ -105,7 +119,7 @@ namespace Presentation.Controllers
             Response.Cookies.Append("AuthToken", string.Empty, new CookieOptions
             {
                 HttpOnly = true, // Те же параметры для надежности
-                Secure = true,   // Использовать только для HTTPS
+                Secure = false,   // Использовать только для HTTPS
                 Expires = DateTimeOffset.UtcNow.AddDays(-1) // Истекший срок действия
             });
             return RedirectToAction("Index", "Home");

@@ -17,6 +17,7 @@
                     <th>№</th>
                     <th>Занятие</th>
                     <th>Группа</th>
+                    <th>Аудитория</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,6 +31,7 @@
                         <td>@(lessonNumber++)</td>
                         <td>@schedule.Discipline.Name</td>
                         <td>@schedule.Group.Name</td>
+                        <td>@schedule.Auditory</td>
                         <td>
                             <a asp-controller="Attendance" asp-action="Index" asp-route-SearchDisciplineName="@schedule.Discipline.Name" asp-route-SearchStartTime=@schedule.StartTime
                                asp-route-SearchTeacherName=@schedule.Teacher.Name asp-route-SearchGroupName=@schedule.Group.Name>Занятия</a>

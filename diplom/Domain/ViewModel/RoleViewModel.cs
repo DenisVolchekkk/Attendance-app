@@ -12,6 +12,8 @@ namespace Domain.ViewModel
         public string Id { get; set; }
         public List<Role> RoleList { get; set; }
         public List<string> Roles { get; set; }
+        public int? SelectedFacilityId { get; set; }
+        public List<Facility> Facilities { get; set; }
     }
 
 }

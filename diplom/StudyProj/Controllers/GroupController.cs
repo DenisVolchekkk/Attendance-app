@@ -1,7 +1,12 @@
 ﻿using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StudyProj.Repositories.Implementations;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 namespace StudyProj.Controllers
 {
     [Authorize(Roles = "Deputy Dean,Dean,Chief")]
@@ -10,26 +15,56 @@ namespace StudyProj.Controllers
     public class GroupController : ControllerBase
     {
         private IGroupService Groups { get; set; }
+        UserManager<User> _userManager;
 
-
-        public GroupController(IGroupService Group)
+        public GroupController(IGroupService Group, UserManager<User> userManager)
         {
             Groups = Group;
+            _userManager = userManager;
+
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
 
         {
-            return new JsonResult(await Groups.GetAllAsync());
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
+
+
+            // Если у пользователя нет факультета - возвращаем пустой список
+            if (facId.IsNullOrEmpty())
+            {
+                return new JsonResult(await Groups.GetAllAsync());
+            }
+            else
+            {
+                var groups = await Groups.GetAllAsync();
+                var filteredGroups = groups.Where(g => g.FacilityId == int.Parse(facId)).ToList();
+                return new JsonResult(filteredGroups);
+            }
+
+           
         }
         [HttpGet]
         public async Task<IActionResult> Filter([FromQuery] Group group)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
 
-            return new JsonResult(await Groups.GetAllAsync(group));
+
+            // Если у пользователя нет факультета - возвращаем пустой список
+            if (facId.IsNullOrEmpty())
+            {
+                return new JsonResult(await Groups.GetAllAsync());
+            }
+            else
+            {
+                var groups = await Groups.GetAllAsync();
+                var filteredGroups = groups.Where(g => g.FacilityId == int.Parse(facId)).ToList();
+                return new JsonResult(filteredGroups);
+            }
+            
         }
         [HttpGet("{id}")]
         public async Task<ActionResult> GetGroup(int id)
@@ -45,21 +80,33 @@ namespace StudyProj.Controllers
         }
         [Authorize(Roles = "Deputy Dean,Dean")]
         [HttpPost]
-        public async Task<IActionResult> Post(Group Group)
+        public async Task<IActionResult> Post(Group group)
         {
-            bool success = true;
-            Group gr = null;
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
 
+
+            // Если у пользователя нет факультета - возвращаем пустой список
+            if (facId.IsNullOrEmpty())
+            {
+                return BadRequest("Your account is not assigned to any facility");
+            }
+            group.FacilityId = int.Parse(facId);
+
+            bool success = true;
             try
             {
-                gr = await Groups.CreateAsync(Group);
+                var createdGroup = await Groups.CreateAsync(group);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 success = false;
             }
 
-            return success ? new JsonResult($"Created successfully with ID: {gr.Id}") : new JsonResult("Creation failed");
+            return success
+                ? new JsonResult($"Created successfully with ID: {group.Id}")
+                : BadRequest("Group creation failed");
         }
         [Authorize(Roles = "Deputy Dean,Dean")]
         [HttpPut]
@@ -67,6 +114,14 @@ namespace StudyProj.Controllers
         {
             bool success = true;
             var gr = await Groups.GetAsync(Group.Id);
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
+
+            if (facId.IsNullOrEmpty())
+            {
+                return BadRequest("Your account is not assigned to any facility");
+            }
+            Group.FacilityId = int.Parse(facId);
+
             try
             {
                 if (gr != null)

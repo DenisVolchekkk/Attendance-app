@@ -22,6 +22,9 @@ namespace Domain.ViewModel
         [JsonConverter(typeof(TimeSpanConverter))]
         [DisplayFormat(DataFormatString = "{0:hh\\:mm}")]
         public TimeSpan EndTime { get; set; }
+        [Required(ErrorMessage = "Введите аудиторию")]
+        [Display(Name = "Аудитория")]
+        public string? Auditory { get; set; }
         [Required(ErrorMessage = "Введите день недели")]
         [Display(Name = "День недели")]
         public DayOfWeek? DayOfWeek { get; set; }

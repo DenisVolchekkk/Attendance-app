@@ -3,7 +3,28 @@
 @{
     ViewData["Title"] = "User List";
 }
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        @if (TempData["RequireRelogin"] != null && (bool)TempData["RequireRelogin"])
+        {
+            <form class="form-inline" asp-area="" asp-controller="Register" asp-action="Logout">
+                <button type="submit" class="nav-link btn btn-link text-dark">Выход</button>
+            </form>
+        }
+    </div>
+}
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
 <h1>Пользователи</h1>
 
 <table class="table table-striped">
@@ -11,6 +32,7 @@
         <tr>
             <th>Пользователь</th>
             <th>Роли</th>
+            <th>Факультет</th>
             <th>Действия</th>
         </tr>
     </thead>
@@ -18,21 +40,33 @@
         @foreach (var user in Model)
         {
             <tr>
-                <td>@user.FullName </td>
+                <td>@user.FullName</td>
                 <td>
-                @foreach(var role in user.Role)
-                {
-                        @role 
-                        @:&nbsp
-                }
+                    @foreach (var role in user.Role)
+                    {
+                        @role
+                        @:&nbsp;
+                    }
                 </td>
+                <td>@user.Facility</td>
                 <td>
-                    @Html.ActionLink("Обновить", "Edit", new { id = user.Id, Roles = user.Role.ToList() })
+                    @Html.ActionLink("Обновить", "Edit", new
+                        {
+                            id = user.Id,
+                            Roles = user.Role.ToList(),
+                            facilityId = user.FacilityId
+                        })
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+@{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+}
+
 <a asp-action="UserList"
    asp-route-pageNumber="@(Model.PageIndex - 1)">
     Предыдущая

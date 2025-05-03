@@ -47,7 +47,7 @@ class ScheduleRepository implements AbstractScheduleRepository {
     }
 
     final response = await dio.get(
-      'http://192.168.0.105:5183/api/Schedule/Filter',
+      'http://ggtuapi.runasp.net/api/Schedule/Filter',
       queryParameters: queryParameters,
       options: Options(
         headers: {

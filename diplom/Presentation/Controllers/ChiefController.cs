@@ -9,7 +9,7 @@ namespace Presentation.Controllers
 {
     public class ChiefController : Controller
     {
-        Uri baseAddress = new Uri("http://192.168.0.105:5183/api");
+        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
         private readonly HttpClient _client;
 
         public ChiefController()
@@ -37,30 +37,44 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(string searchString, int? pageNumber)
+        public IActionResult Index(string sortOrder, string searchString, int? pageNumber, int pageSize = 20)
         {
             AddAuthorizationHeader();
-            ViewData["CurrentFilter"] = searchString;
-            IQueryable<Chief> ChiefList = null;
 
+            // Параметры сортировки
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = string.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["CurrentPageSize"] = pageSize;
+            ViewData["CurrentFilter"] = searchString;
+
+            IQueryable<Chief> ChiefList = null;
             HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Chief/Filter?Name=" + searchString).Result;
+
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content.ReadAsStringAsync().Result;
                 ChiefList = JsonConvert.DeserializeObject<List<Chief>>(data).AsQueryable();
+
+                // Применяем сортировку
+                switch (sortOrder)
+                {
+                    case "name_desc":
+                        ChiefList = ChiefList.OrderByDescending(c => c.Name);
+                        break;
+                    default:
+                        ChiefList = ChiefList.OrderBy(c => c.Name);
+                        break;
+                }
             }
             else
             {
-                // Return an error page with the status code in the ViewModel
                 int statusCode = (int)response.StatusCode;
                 var errorViewModel = new ErrorViewModel
                 {
                     RequestId = $"Error code: {statusCode}"
                 };
-
                 return View("Error", errorViewModel);
             }
-            int pageSize = 20;
 
             return View(PaginatedList<Chief>.Create(ChiefList.AsNoTracking(), pageNumber ?? 1, pageSize));
         }

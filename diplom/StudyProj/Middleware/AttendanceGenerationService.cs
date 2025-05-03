@@ -22,7 +22,7 @@
                 }
 
                 // Ожидание до следующего дня
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromHours(12), stoppingToken);
             }
         }
     }

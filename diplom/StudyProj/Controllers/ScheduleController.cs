@@ -1,6 +1,7 @@
 ﻿using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using StudyProj.Repositories.Implementations;
 using System.Security.Claims;
 namespace StudyProj.Controllers
@@ -22,7 +23,19 @@ namespace StudyProj.Controllers
         public async Task<IActionResult> GetAll()
 
         {
-            return new JsonResult(await Schedules.GetAllAsync());
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
+
+            // Если у пользователя нет факультета - возвращаем пустой список
+            if (facId.IsNullOrEmpty())
+            {
+                return new JsonResult(await Schedules.GetAllAsync());
+            }
+            else
+            {
+                var schedules = await Schedules.GetAllAsync();
+                var filteredSchedules = schedules.Where(g => g.Group.FacilityId == int.Parse(facId)).ToList();
+                return new JsonResult(filteredSchedules);
+            }
         }
 
         [HttpGet]
@@ -35,7 +48,19 @@ namespace StudyProj.Controllers
             var isChief = User.IsInRole("Chief");
             var isAdmin = User.IsInRole("Dean") || User.IsInRole("Deputy Dean");
 
-            return new JsonResult(await Schedules.GetAllAsync(schedule, currentUserName, isChief, isTeacher, isAdmin));
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
+
+            // Если у пользователя нет факультета - возвращаем пустой список
+            if (facId.IsNullOrEmpty())
+            {
+                return new JsonResult(await Schedules.GetAllAsync(schedule, currentUserName, isChief, isTeacher, isAdmin));
+            }
+            else
+            {
+                var schedules = await Schedules.GetAllAsync(schedule, currentUserName, isChief, isTeacher, isAdmin);
+                var filteredSchedules = schedules.Where(g => g.Group.FacilityId == int.Parse(facId)).ToList();
+                return new JsonResult(filteredSchedules);
+            }
         }
         [HttpGet("{id}")]
         public async Task<ActionResult> GetSchedule(int id)
@@ -55,10 +80,18 @@ namespace StudyProj.Controllers
         {
             bool success = true;
             Schedule sc = null;
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
 
             try
             {
-                sc = await Schedules.CreateAsync(Schedule);
+                if (facId.IsNullOrEmpty())
+                {
+                    return BadRequest("Your account is not assigned to any facility");
+                }
+                else
+                {
+                    sc = await Schedules.CreateAsync(Schedule);
+                }
             }
             catch (Exception)
             {
@@ -73,11 +106,20 @@ namespace StudyProj.Controllers
         {
             bool success = true;
             var sc = await Schedules.GetAsync(Schedule.Id);
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
+
             try
             {
                 if (sc != null)
                 {
-                    sc = await Schedules.UpdateAsync(Schedule);
+                    if (facId.IsNullOrEmpty())
+                    {
+                        return BadRequest("Your account is not assigned to any facility");
+                    }
+                    else
+                    {
+                        sc = await Schedules.UpdateAsync(Schedule);
+                    }
                 }
                 else
                 {

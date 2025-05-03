@@ -6,6 +6,20 @@
 
 <form asp-action="UpdateRoles" method="post">
     <input type="hidden" name="Id" value="@Model.Id" />
+    
+    <div class="form-group">
+        <label>Факультет:</label>
+        <select name="SelectedFacilityId" class="form-control">
+            <option value="">-- Не выбрано --</option>
+            @foreach (var facility in Model.Facilities)
+            {
+                <option value="@facility.Id" selected="@(facility.Id == Model.SelectedFacilityId)">
+                    @facility.Name
+                </option>
+            }
+        </select>
+    </div>
+    
     <table>
         <thead>
             <tr>
@@ -28,7 +42,7 @@
             }
         </tbody>
     </table>
-    <button type="submit">Сохранить</button>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
 </form>
 
 @section Scripts {

@@ -7,12 +7,25 @@ using Microsoft.EntityFrameworkCore;
 using System.Web;
 using Domain.ViewModel;
 using Presentation.Models;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using NPOI.SS.Util;
 
 namespace Presentation.Controllers
 {
     public class ScheduleController : Controller
     {
-        Uri baseAddress = new Uri("http://192.168.0.105:5183/api");
+        private readonly Dictionary<string, DayOfWeek> _russianToDayOfWeek = new Dictionary<string, DayOfWeek>
+            {
+                {"понедельник", DayOfWeek.Monday},
+                {"вторник", DayOfWeek.Tuesday},
+                {"среда", DayOfWeek.Wednesday},
+                {"четверг", DayOfWeek.Thursday},
+                {"пятница", DayOfWeek.Friday},
+                {"суббота", DayOfWeek.Saturday},
+                {"воскресенье", DayOfWeek.Sunday}
+            };
+        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
         private readonly HttpClient _client;
 
         public ScheduleController()
@@ -37,51 +50,115 @@ namespace Presentation.Controllers
                 _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
         }
-
-                [HttpGet]
-        public IActionResult Index(string SearchStartTime, string SearchDayOfWeek, string SearchTeacherName, string SearchDisciplineName, int? pageNumber)
+        [HttpGet]
+        public IActionResult Index(string sortOrder, string SearchStartTime, string SearchDayOfWeek,
+    string SearchTeacherName, string SearchDisciplineName, int? pageNumber, int pageSize = 20)
         {
             AddAuthorizationHeader();
+
+            // Параметры сортировки
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["StartTimeSortParm"] = sortOrder == "startTime" ? "startTime_desc" : "startTime";
+            ViewData["EndTimeSortParm"] = sortOrder == "endTime" ? "endTime_desc" : "endTime";
+            ViewData["DayOfWeekSortParm"] = sortOrder == "dayOfWeek" ? "dayOfWeek_desc" : "dayOfWeek";
+            ViewData["GroupSortParm"] = sortOrder == "group" ? "group_desc" : "group";
+            ViewData["TeacherSortParm"] = sortOrder == "teacher" ? "teacher_desc" : "teacher";
+            ViewData["DisciplineSortParm"] = sortOrder == "discipline" ? "discipline_desc" : "discipline";
+            ViewData["AuditorySortParm"] = sortOrder == "auditory" ? "auditory_desc" : "auditory";
+            ViewData["CurrentPageSize"] = pageSize;
+
+            // Параметры поиска
             ViewData["SearchStartTime"] = SearchStartTime;
             ViewData["SearchDayOfWeek"] = SearchDayOfWeek;
             ViewData["SearchTeacherName"] = SearchTeacherName;
             ViewData["SearchDisciplineName"] = SearchDisciplineName;
+
             HttpResponseMessage response;
             TimeSpan.TryParse(SearchStartTime, out var result);
             string formattedTime = result.ToString("hh\\:mm\\:ss");
             string encodedTime = HttpUtility.UrlEncode(formattedTime).ToUpper();
-            Enum.TryParse(typeof(DayOfWeek), SearchDayOfWeek, out var res);
-            //response = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?hour={result.Hour}&minute={result.Minute}&DayOfWeek={SearchDayOfWeek}&Teacher.Name={SearchTeacherName}&Discipline.Name={SearchDisciplineName}").Result;
+
+            // Преобразование русского названия дня недели в enum
+            object res = null;
+            if (!string.IsNullOrEmpty(SearchDayOfWeek))
+            {
+                var lowerSearch = SearchDayOfWeek.ToLower();
+                if (_russianToDayOfWeek.ContainsKey(lowerSearch))
+                {
+                    res = _russianToDayOfWeek[lowerSearch];
+                }
+                else
+                {
+                    // Пробуем распарсить английское название (на случай, если ввели по-английски)
+                    Enum.TryParse(typeof(DayOfWeek), SearchDayOfWeek, true, out res);
+                }
+            }
+
             if (result.TotalMinutes != 0)
             {
                 response = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?StartTime={encodedTime}&DayOfWeek={res}&Teacher.Name={SearchTeacherName}&Discipline.Name={SearchDisciplineName}").Result;
             }
-            else 
+            else
             {
                 response = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?DayOfWeek={res}&Teacher.Name={SearchTeacherName}&Discipline.Name={SearchDisciplineName}").Result;
-
             }
+
             IQueryable<Schedule> ScheduleList = null;
 
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content.ReadAsStringAsync().Result;
                 ScheduleList = JsonConvert.DeserializeObject<List<Schedule>>(data).AsQueryable();
+                ScheduleList = ApplySorting(ScheduleList, sortOrder);
             }
             else
             {
-                // Return an error page with the status code in the ViewModel
                 int statusCode = (int)response.StatusCode;
                 var errorViewModel = new ErrorViewModel
                 {
                     RequestId = $"Error code: {statusCode}"
                 };
-
                 return View("Error", errorViewModel);
             }
-            int pageSize = 20;
 
             return View(PaginatedList<Schedule>.Create(ScheduleList.AsNoTracking(), pageNumber ?? 1, pageSize));
+        }
+
+        private IQueryable<Schedule> ApplySorting(IQueryable<Schedule> scheduleList, string sortOrder)
+        {
+            switch (sortOrder)
+            {
+                case "startTime":
+                    return scheduleList.OrderBy(s => s.StartTime);
+                case "startTime_desc":
+                    return scheduleList.OrderByDescending(s => s.StartTime);
+                case "endTime":
+                    return scheduleList.OrderBy(s => s.EndTime);
+                case "endTime_desc":
+                    return scheduleList.OrderByDescending(s => s.EndTime);
+                case "dayOfWeek":
+                    return scheduleList.OrderBy(s => s.DayOfWeek);
+                case "dayOfWeek_desc":
+                    return scheduleList.OrderByDescending(s => s.DayOfWeek);
+                case "group":
+                    return scheduleList.OrderBy(s => s.Group.Name);
+                case "group_desc":
+                    return scheduleList.OrderByDescending(s => s.Group.Name);
+                case "teacher":
+                    return scheduleList.OrderBy(s => s.Teacher.Name);
+                case "teacher_desc":
+                    return scheduleList.OrderByDescending(s => s.Teacher.Name);
+                case "discipline":
+                    return scheduleList.OrderBy(s => s.Discipline.Name);
+                case "discipline_desc":
+                    return scheduleList.OrderByDescending(s => s.Discipline.Name);
+                case "auditory":
+                    return scheduleList.OrderBy(s => s.Auditory);
+                case "auditory_desc":
+                    return scheduleList.OrderByDescending(s => s.Auditory);
+                default:
+                    return scheduleList.OrderBy(s => s.StartTime);
+            }
         }
 
         [HttpGet]
@@ -106,6 +183,12 @@ namespace Presentation.Controllers
                     TempData["successMessage"] = "Schedule created.";
                     return RedirectToAction("Index");
                 }
+                {
+                    string errorContent = response.Content.ReadAsStringAsync().Result;
+
+                    TempData["errorMessage"] = $"Error: {response.StatusCode} - {errorContent}";
+                    return View();
+                }
             }
             catch (Exception ex)
             {
@@ -113,7 +196,6 @@ namespace Presentation.Controllers
                 return View();
             }
 
-            return View();
         }
         [HttpGet]
         public IActionResult Edit(int id)
@@ -130,6 +212,7 @@ namespace Presentation.Controllers
                     Schedule = JsonConvert.DeserializeObject<ScheduleViewModel>(data);
                     SetViewData(Schedule.DisciplineId, Schedule.TeacherId);
                 }
+
                 return View(Schedule);
             }
             catch (Exception ex)
@@ -151,7 +234,13 @@ namespace Presentation.Controllers
                 TempData["successMessage"] = "Schedule updated.";
                 return RedirectToAction("Index");
             }
-            return View();
+            else
+            {
+                string errorContent = response.Content.ReadAsStringAsync().Result;
+
+                TempData["errorMessage"] = $"Error: {response.StatusCode} - {errorContent}";
+                return View();
+            }
         }
         [HttpGet]
         public IActionResult Delete(int id)
@@ -188,8 +277,16 @@ namespace Presentation.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["successMessage"] = "Schedule deleted.";
+                    return RedirectToAction("Index");
+
                 }
-                return RedirectToAction("Index");
+                else
+                {
+                    string errorContent = response.Content.ReadAsStringAsync().Result;
+
+                    TempData["errorMessage"] = $"Error: {response.StatusCode} - {errorContent}";
+                    return View();
+                }
 
             }
             catch (Exception ex)
@@ -261,6 +358,141 @@ namespace Presentation.Controllers
                 .ToDictionary(g => g.Key, g => g.OrderBy(s => s.StartTime).ToList());
 
             return View(groupedSchedules);
+        }
+        [HttpPost]
+        public IActionResult GenerateReport(string sortOrder, string SearchStartTime, string SearchDayOfWeek,
+            string SearchTeacherName, string SearchDisciplineName)
+        {
+            AddAuthorizationHeader();
+
+            // Получаем данные для отчета
+            object res = null;
+            if (!string.IsNullOrEmpty(SearchDayOfWeek))
+            {
+                var lowerSearch = SearchDayOfWeek.ToLower();
+                if (_russianToDayOfWeek.ContainsKey(lowerSearch))
+                {
+                    res = _russianToDayOfWeek[lowerSearch];
+                }
+                else
+                {
+                    Enum.TryParse(typeof(DayOfWeek), SearchDayOfWeek, true, out res);
+                }
+            }
+
+            HttpResponseMessage response;
+            if (TimeSpan.TryParse(SearchStartTime, out var result) && result.TotalMinutes != 0)
+            {
+                string formattedTime = result.ToString("hh\\:mm\\:ss");
+                string encodedTime = HttpUtility.UrlEncode(formattedTime).ToUpper();
+                response = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?StartTime={encodedTime}&DayOfWeek={res}&Teacher.Name={SearchTeacherName}&Discipline.Name={SearchDisciplineName}").Result;
+            }
+            else
+            {
+                response = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?DayOfWeek={res}&Teacher.Name={SearchTeacherName}&Discipline.Name={SearchDisciplineName}").Result;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                TempData["errorMessage"] = "Ошибка при получении данных для отчета";
+                return RedirectToAction("Index");
+            }
+
+            string data = response.Content.ReadAsStringAsync().Result;
+            var schedules = JsonConvert.DeserializeObject<List<Schedule>>(data);
+            schedules = ApplySorting(schedules.AsQueryable(), sortOrder).ToList();
+
+            // Создаем книгу Excel
+            IWorkbook workbook = new XSSFWorkbook();
+            ISheet sheet = workbook.CreateSheet("Расписание");
+
+            // Стили для форматирования
+            ICellStyle headerStyle = workbook.CreateCellStyle();
+            IFont headerFont = workbook.CreateFont();
+            headerFont.IsBold = true;
+            headerStyle.SetFont(headerFont);
+            headerStyle.Alignment = HorizontalAlignment.Center;
+
+            ICellStyle dayHeaderStyle = workbook.CreateCellStyle();
+            dayHeaderStyle.CloneStyleFrom(headerStyle);
+            dayHeaderStyle.FillForegroundColor = IndexedColors.Grey25Percent.Index;
+            dayHeaderStyle.FillPattern = FillPattern.SolidForeground;
+
+            // Заголовки столбцов
+            IRow columnHeaderRow = sheet.CreateRow(0);
+            columnHeaderRow.CreateCell(0).SetCellValue("Время начала");
+            columnHeaderRow.CreateCell(1).SetCellValue("Время окончания");
+            columnHeaderRow.CreateCell(2).SetCellValue("Дисциплина");
+            columnHeaderRow.CreateCell(3).SetCellValue("Преподаватель");
+            columnHeaderRow.CreateCell(4).SetCellValue("Аудитория");
+            // Применяем стиль к заголовкам столбцов
+            for (int i = 0; i < 5; i++)
+            {
+                columnHeaderRow.GetCell(i).CellStyle = headerStyle;
+            }
+
+            // Группируем расписание по группам, затем по дням недели
+            var groupSchedules = schedules
+                .GroupBy(s => s.Group.Name)
+                .OrderBy(g => g.Key);
+
+            int currentRow = 1;
+            foreach (var group in groupSchedules)
+            {
+                // Название группы (объединение 5 столбцов)
+                IRow groupRow = sheet.CreateRow(currentRow++);
+                groupRow.CreateCell(0).SetCellValue(group.Key);
+                sheet.AddMergedRegion(new CellRangeAddress(groupRow.RowNum, groupRow.RowNum, 0, 4));
+                groupRow.GetCell(0).CellStyle = headerStyle;
+
+                // Группируем занятия по дням недели
+                var dayGroups = group
+                    .GroupBy(g => g.DayOfWeek)
+                    .OrderBy(g => g.Key);
+
+                foreach (var dayGroup in dayGroups)
+                {
+                    // Название дня недели (объединение 5 столбцов)
+                    IRow dayRow = sheet.CreateRow(currentRow++);
+                    dayRow.CreateCell(0).SetCellValue(
+                        _russianToDayOfWeek.FirstOrDefault(x => x.Value == dayGroup.Key).Key);
+                    sheet.AddMergedRegion(new CellRangeAddress(dayRow.RowNum, dayRow.RowNum, 0, 4));
+                    dayRow.GetCell(0).CellStyle = dayHeaderStyle;
+
+                    // Занятия в этот день
+                    foreach (var schedule in dayGroup.OrderBy(s => s.StartTime))
+                    {
+                        IRow lessonRow = sheet.CreateRow(currentRow++);
+                        lessonRow.CreateCell(0).SetCellValue(schedule.StartTime.ToString(@"hh\:mm"));
+                        lessonRow.CreateCell(1).SetCellValue(schedule.EndTime.ToString(@"hh\:mm"));
+                        lessonRow.CreateCell(2).SetCellValue(schedule.Discipline.Name);
+                        lessonRow.CreateCell(3).SetCellValue(schedule.Teacher.Name);
+                        lessonRow.CreateCell(4).SetCellValue(schedule.Auditory);
+                    }
+
+
+                }
+                // Пустая строка после дня
+                currentRow++;
+            }
+
+            // Автонастройка ширины столбцов
+            for (int i = 0; i < 5; i++)
+            {
+                sheet.AutoSizeColumn(i);
+            }
+
+            // Возвращаем файл
+            byte[] fileContents;
+            using (var tempStream = new MemoryStream())
+            {
+                workbook.Write(tempStream);
+                fileContents = tempStream.ToArray();
+            }
+
+            return File(fileContents,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"Расписание_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
         }
     }
 }

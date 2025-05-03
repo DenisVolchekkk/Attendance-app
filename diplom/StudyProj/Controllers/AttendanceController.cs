@@ -1,6 +1,7 @@
 ﻿using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using StudyProj.Repositories.Implementations;
 using StudyProj.Repositories.Interfaces;
 using System.Security.Claims;
@@ -23,9 +24,21 @@ namespace StudyProj.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
-
         {
-            return new JsonResult(await Attendances.GetAllAsync());
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
+
+
+            // Если у пользователя нет факультета - возвращаем пустой список
+            if (facId.IsNullOrEmpty())
+            {
+                return new JsonResult(await Attendances.GetAllAsync());
+            }
+            else
+            {
+                var attendances = await Attendances.GetAllAsync();
+                var filteredAttendances = attendances.Where(g => g.Schedule.Group.FacilityId == int.Parse(facId)).ToList();
+                return new JsonResult(filteredAttendances);
+            }
         }
         [HttpGet]
         public async Task<IActionResult> Filter([FromQuery] Attendance attendance)
@@ -37,7 +50,19 @@ namespace StudyProj.Controllers
             var isChief = User.IsInRole("Chief");
             var isAdmin = User.IsInRole("Dean") || User.IsInRole("Deputy Dean");
 
-            return new JsonResult(await Attendances.GetAllAsync(attendance, currentUserName, isChief, isTeacher, isAdmin));
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
+
+            // Если у пользователя нет факультета - возвращаем пустой список
+            if (facId.IsNullOrEmpty())
+            {
+                return new JsonResult(await Attendances.GetAllAsync(attendance, currentUserName, isChief, isTeacher, isAdmin));
+            }
+            else
+            {
+                var attendances = await Attendances.GetAllAsync(attendance, currentUserName, isChief, isTeacher, isAdmin);
+                var filteredAttendances = attendances.Where(g => g.Schedule.Group.FacilityId == int.Parse(facId)).ToList();
+                return new JsonResult(filteredAttendances);
+            }
         }
         [HttpGet("{id}")]
         public async Task<ActionResult> GetAttendance(int id)

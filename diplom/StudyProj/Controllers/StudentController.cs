@@ -1,7 +1,9 @@
 ﻿using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using StudyProj.Repositories.Implementations;
+using System.Security.Claims;
 namespace StudyProj.Controllers
 {
     [Authorize(Roles = "Deputy Dean,Dean,Chief")]
@@ -21,15 +23,41 @@ namespace StudyProj.Controllers
         public async Task<IActionResult> GetAll()
 
         {
-            return new JsonResult(await Students.GetAllAsync());
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
+            if (string.IsNullOrEmpty(facId))
+                return Unauthorized("User claim not found");
+
+            // Если у пользователя нет факультета - возвращаем пустой список
+            if (facId.IsNullOrEmpty())
+            {
+                return new JsonResult(await Students.GetAllAsync());
+            }
+            else
+            {
+                var students = await Students.GetAllAsync();
+                var filteredStudents = students.Where(g => g.Group.FacilityId == int.Parse(facId)).ToList();
+                return new JsonResult(filteredStudents);
+            }
         }
         [HttpGet]
         public async Task<IActionResult> Filter([FromQuery] Student student)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            var facId = (User.FindFirstValue(ClaimTypes.GroupSid));
 
-            return new JsonResult(await Students.GetAllAsync(student));
+
+            // Если у пользователя нет факультета - возвращаем пустой список
+            if (facId.IsNullOrEmpty())
+            {
+                return new JsonResult(await Students.GetAllAsync(student));
+            }
+            else
+            {
+                var students = await Students.GetAllAsync(student);
+                var filteredStudents = students.Where(g => g.Group.FacilityId == int.Parse(facId)).ToList();
+                return new JsonResult(filteredStudents);
+            }
         }
         [HttpGet("{id}")]
         public async Task<ActionResult> GetStudent(int id)

@@ -44,7 +44,7 @@ namespace StudyProj.JwtFeatures
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
-
+            claims.Add(new Claim(ClaimTypes.GroupSid, user.FacilityId?.ToString() ?? string.Empty));
             return claims;
         }
 

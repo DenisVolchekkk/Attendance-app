@@ -1,23 +1,18 @@
 ﻿@{
     var authToken = Context?.Request?.Cookies["AuthToken"];
     var email = string.Empty;
-    var roles = new List<string>(); // Список для хранения ролей
+    var roles = new List<string>();
     var isAuthSuccessful = false;
 
     if (!string.IsNullOrEmpty(authToken))
     {
         var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(authToken);
-
-        // Получение email
         email = jwtToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
-
-        // Получение всех ролей
         roles = jwtToken.Claims
             .Where(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
             .Select(c => c.Value)
             .ToList();
-
         isAuthSuccessful = true;
     }
 }
@@ -31,7 +26,7 @@
 @if (roles.Any(r => r != "Chief" && r != "Teacher"))
 {
     <p>
-    <a asp-action="Create">Создать</a>
+        <a asp-action="Create">Создать</a>
     </p>
 }
 <form asp-action="Index" method="get">
@@ -41,33 +36,177 @@
             <input type="text" placeholder="Дата" name="SearchAttendanceDate" value="@ViewData["SearchAttendanceDate"]" />
             <input type="text" placeholder="Дисциплина" name="SearchDisciplineName" value="@ViewData["SearchDisciplineName"]" />
             <input type="time" placeholder="Начало" name="SearchStartTime" value="@ViewData["SearchStartTime"]" />
-            <input type ="hidden" placeholder="Учитель" name="SearchTeacherName" value="@ViewData["SearchTeacherName"]" />
+            <input type="hidden" placeholder="Преподаватель" name="SearchTeacherName" value="@ViewData["SearchTeacherName"]" />
             <input type="hidden" placeholder="Староста" name="SearchChiefName" value="@ViewData["SearchChiefName"]" />
             <input type="text" placeholder="Группа" name="SearchGroupName" value="@ViewData["SearchGroupName"]" />
             <input type="submit" value="Поиск" class="btn btn-default" />
             <a asp-action="Index">Вернуться к полному списку</a>
+            <label for="pageSize">Записей на странице:</label>
+            <input type="number" id="pageSize" name="pageSize"
+                   min="1" max="1000" step="1"
+                   value="@(ViewData["CurrentPageSize"] ?? 20)"
+                   style="width: 60px; margin-right: 10px;" />
+
+            <input type="submit" value="Применить" class="btn btn-default" />
+            <a asp-action="Index" class="btn btn-link">Сбросить</a>
+
         </p>
     </div>
 </form>
+@if (Model.Any())
+{
+    <form asp-action="GenerateReport" method="post" style="display: inline;">
+        <input type="hidden" name="sortOrder" value="@ViewData["CurrentSort"]" />
+        <input type="hidden" name="SearchStudentName" value="@ViewData["SearchStudentName"]" />
+        <input type="hidden" name="SearchAttendanceDate" value="@ViewData["SearchAttendanceDate"]" />
+        <input type="hidden" name="SearchStartTime" value="@ViewData["SearchStartTime"]" />
+        <input type="hidden" name="SearchDisciplineName" value="@ViewData["SearchDisciplineName"]" />
+        <input type="hidden" name="SearchTeacherName" value="@ViewData["SearchTeacherName"]" />
+        <input type="hidden" name="SearchChiefName" value="@ViewData["SearchChiefName"]" />
+        <input type="hidden" name="SearchGroupName" value="@ViewData["SearchGroupName"]" />
+        <button type="submit" class="btn btn-primary">Сформировать отчет</button>
+    </form>
+}
 <table class="table">
     <thead>
         <tr>
             <th>
-                Студент
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["StudentSortParm"]"
+                   asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+                   asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+                   asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+                   asp-route-SearchGroupName="@ViewData["SearchGroupName"]">
+                    Студент
+                    @if (ViewData["CurrentSort"]?.ToString() == "student_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else
+                    {
+                        <span>▲</span>
+                    }
+                </a>
             </th>
             <th>
-                Время
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["TimeSortParm"]"
+                   asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+                   asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+                   asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+                   asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+                   asp-route-SearchGroupName="@ViewData["SearchGroupName"]">
+                    Время
+                    @if (ViewData["CurrentSort"]?.ToString() == "time_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else if (ViewData["CurrentSort"]?.ToString() == "time")
+                    {
+                        <span>▲</span>
+                    }
+                </a>
             </th>
             <th>
-                Дата
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["DateSortParm"]"
+                   asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+                   asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+                   asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+                   asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+                   asp-route-SearchGroupName="@ViewData["SearchGroupName"]">
+                    Дата
+                    @if (ViewData["CurrentSort"]?.ToString() == "date_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else if (ViewData["CurrentSort"]?.ToString() == "date")
+                    {
+                        <span>▲</span>
+                    }
+                </a>
             </th>
             <th>
-                Дисциплина
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["DisciplineSortParm"]"
+                   asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+                   asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+                   asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+                   asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+                   asp-route-SearchGroupName="@ViewData["SearchGroupName"]">
+                    Дисциплина
+                    @if (ViewData["CurrentSort"]?.ToString() == "discipline_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else if (ViewData["CurrentSort"]?.ToString() == "discipline")
+                    {
+                        <span>▲</span>
+                    }
+                </a>
             </th>
             <th>
-                Присутствие
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["AuditorySortParm"]"
+                   asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+                   asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+                   asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+                   asp-route-SearchGroupName="@ViewData["SearchGroupName"]">
+                    Аудитория
+                    @if (ViewData["CurrentSort"]?.ToString() == "auditory_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else if (ViewData["CurrentSort"]?.ToString() == "auditory")
+                    {
+                        <span>▲</span>
+                    }
+                </a>
             </th>
-            <th></th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["PresenceSortParm"]"
+                   asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+                   asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+                   asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+                   asp-route-SearchGroupName="@ViewData["SearchGroupName"]">
+                    Присутствие
+                    @if (ViewData["CurrentSort"]?.ToString() == "presence_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else if (ViewData["CurrentSort"]?.ToString() == "presence")
+                    {
+                        <span>▲</span>
+                    }
+                </a>
+            </th>
+
+            @if (roles.Any(r => r != "Chief" && r != "Teacher"))
+            {
+                <th>Действия</th>
+            }
         </tr>
     </thead>
     <tbody>
@@ -87,12 +226,14 @@
                     @Html.DisplayFor(modelItem => item.Schedule.Discipline.Name)
                 </td>
                 <td>
-                    <form asp-action="TogglePresence" method="post" class="toggle-presence-form" data-id="@item.Id">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" class="btn @(item.IsPresent ? "btn-success" : "btn-danger")">
-                            @(item.IsPresent ? "Присутствовал" : "Отсутствовал")
-                        </button>
-                    </form>
+                    @Html.DisplayFor(modelItem => item.Schedule.Auditory)
+                </td>
+                <td>
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input presence-checkbox"
+                               data-id="@item.Id" @(item.IsPresent ? "checked" : "") />
+
+                    </div>
                 </td>
                 @if (roles.Any(r => r != "Chief" && r != "Teacher"))
                 {
@@ -107,6 +248,7 @@
 </table>
 <div class="pagination">
     <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
        asp-route-pageNumber="@(Model.PageIndex - 1)"
        asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
        asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
@@ -114,12 +256,14 @@
        asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
        asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
        asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+       asp-route-pageSize="@ViewData["CurrentPageSize"]"
        asp-route-SearchGroupName="@ViewData["SearchGroupName"]"
        class="@(!Model.HasPreviousPage ? "disabled" : "")">
         Предыдущая
     </a>
 
-    <a asp-action="Index" 
+    <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
        asp-route-pageNumber="@(Model.PageIndex + 1)"
        asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
        asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
@@ -128,21 +272,22 @@
        asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
        asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
        asp-route-SearchGroupName="@ViewData["SearchGroupName"]"
+       asp-route-pageSize="@ViewData["CurrentPageSize"]"
        class="@(!Model.HasNextPage ? "disabled" : "")">
         Следующая
     </a>
 </div>
+
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const forms = document.querySelectorAll(".toggle-presence-form");
+            const checkboxes = document.querySelectorAll(".presence-checkbox");
 
-            forms.forEach(form => {
-                form.addEventListener("submit", function (e) {
-                    e.preventDefault(); // Предотвращаем стандартную отправку формы
-
-                    const formData = new FormData(form);
-                    const id = form.getAttribute("data-id");
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener("change", function () {
+                    const id = this.getAttribute("data-id");
+                    const isPresent = this.checked;
+                    const label = this.nextElementSibling;
 
                     fetch(`/Attendance/TogglePresence?id=${id}`, {
                         method: "POST",
@@ -161,16 +306,31 @@
                         })
                         .then(data => {
                             if (data.success) {
-                                const button = form.querySelector("button");
-                                button.textContent = data.isPresent ? "Присутствовал" : "Отсутствовал";
-                                button.classList.toggle("btn-success", data.isPresent);
-                                button.classList.toggle("btn-danger", !data.isPresent);
+                            } else {
+                                // Возвращаем чекбокс в предыдущее состояние при ошибке
+                                checkbox.checked = !isPresent;
                             }
                         })
                         .catch(error => {
                             console.error("Ошибка:", error);
+                            checkbox.checked = !isPresent;
                         });
                 });
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Обработчик для числового ввода
+            const pageSizeInput = document.getElementById('pageSize');
+
+            // Проверка значения при отправке формы
+            document.querySelector('form').addEventListener('submit', function (e) {
+                if (pageSizeInput.value < 1) {
+                    pageSizeInput.value = 1;
+                } else if (pageSizeInput.value > 1000) {
+                    pageSizeInput.value = 1000;
+                }
             });
         });
     </script>
