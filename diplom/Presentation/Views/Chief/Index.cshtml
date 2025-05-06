@@ -36,7 +36,7 @@
     <div class="form-actions no-color">
         <p>
             <input type="text" placeholder="Староста" name="searchString" value="@ViewData["CurrentFilter"]" />
-
+            <input type="text" placeholder="Группа" name="searchGroup" value="@ViewData["SearchGroup"]" />
             <label for="pageSize">Записей:</label>
             <input type="number" id="pageSize" name="pageSize"
                    min="1" max="1000" step="1"
@@ -56,13 +56,31 @@
                 <a asp-action="Index"
                    asp-route-sortOrder="@ViewData["NameSortParm"]"
                    asp-route-pageSize="@ViewData["CurrentPageSize"]"
-                   asp-route-searchString="@ViewData["CurrentFilter"]">
-                    Название
+                   asp-route-searchString="@ViewData["CurrentFilter"]"
+                   asp-route-searchGroup="@ViewData["SearchGroup"]">
+                    ФИО
                     @if (ViewData["CurrentSort"]?.ToString() == "name_desc")
                     {
                         <span>▼</span>
                     }
                     else
+                    {
+                        <span>▲</span>
+                    }
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["GroupSortParm"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-searchString="@ViewData["CurrentFilter"]"
+                   asp-route-searchGroup="@ViewData["SearchGroup"]">
+                    Группа
+                    @if (ViewData["CurrentSort"]?.ToString() == "group_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else if (ViewData["CurrentSort"]?.ToString() == "group")
                     {
                         <span>▲</span>
                     }
@@ -79,6 +97,7 @@
         {
             <tr>
                 <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                <td>@Html.DisplayFor(modelItem => item.Group.Name)</td>
                 @if (roles.Any(r => r != "Chief" && r != "Teacher"))
                 {
                     <td>
@@ -96,8 +115,9 @@
        asp-route-sortOrder="@ViewData["CurrentSort"]"
        asp-route-pageSize="@ViewData["CurrentPageSize"]"
        asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-searchGroup="@ViewData["SearchGroup"]"
        asp-route-searchString="@ViewData["CurrentFilter"]"
-       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+       class="@(!Model.HasPreviousPage ? "disabled" : "")" style="margin-right: 20px;">
         Предыдущая
     </a>
 
@@ -105,6 +125,7 @@
        asp-route-sortOrder="@ViewData["CurrentSort"]"
        asp-route-pageSize="@ViewData["CurrentPageSize"]"
        asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-searchGroup="@ViewData["SearchGroup"]"
        asp-route-searchString="@ViewData["CurrentFilter"]"
        class="@(!Model.HasNextPage ? "disabled" : "")">
         Следующая

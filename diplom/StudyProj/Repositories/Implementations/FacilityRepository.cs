@@ -12,7 +12,7 @@ namespace StudyProj.Repositories.Implementations
             var Facilities = Context.Set<Facility>().AsQueryable();
             if (!string.IsNullOrEmpty(facility.Name))
             {
-                Facilities = Facilities.Where(d => d.Name.Contains(facility.Name));
+                Facilities = Facilities.Where(d => d.Name == facility.Name);
             }
             return await Facilities.ToListAsync();  
         }

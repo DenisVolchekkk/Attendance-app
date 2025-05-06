@@ -98,7 +98,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           _selectedDiscipline != null ||
           _selectedTime != null ||
           _selectedDate != null
-              ? 'Attendance${_selectedDayNumber != null ? ' (${DayUtils.getDayName(_selectedDayNumber!)})' : ''}${_selectedGroupName != null ? ' - $_selectedGroupName' : ''}${_selectedDiscipline != null ? ' - $_selectedDiscipline' : ''}${_selectedTime != null ? ' - ${_selectedTime!.format(context)}' : ''}${_selectedDate != null ? ' - ${_selectedDate!.day}.${_selectedDate!.month}.${_selectedDate!.year}' : ''}'
+              ? '${_selectedDayNumber != null ? ' (${DayUtils.getDayName(_selectedDayNumber!)})' : ''}${_selectedGroupName != null ? ' - $_selectedGroupName' : ''}${_selectedDiscipline != null ? ' - $_selectedDiscipline' : ''}${_selectedTime != null ? ' - ${_selectedTime!.format(context)}' : ''}${_selectedDate != null ? ' - ${_selectedDate!.day}.${_selectedDate!.month}.${_selectedDate!.year}' : ''}'
               : 'All Attendances',
         ),
       ),

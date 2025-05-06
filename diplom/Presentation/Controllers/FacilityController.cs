@@ -10,7 +10,7 @@ namespace Presentation.Controllers
 {
     public class FacilityController : Controller
     {
-        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
+        Uri baseAddress = new Uri("http://localhost:5182/api");
         private readonly HttpClient _client;
 
         public FacilityController()

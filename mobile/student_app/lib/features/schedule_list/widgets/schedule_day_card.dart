@@ -54,9 +54,18 @@ class ScheduleDayCard extends StatelessWidget {
               const TableRow(
                 decoration: BoxDecoration(color: Colors.grey),
                 children: [
-                  TableCell(child: Center(child: Text('Время', style: TextStyle(color: Colors.black)))),
-                  TableCell(child: Center(child: Text('№', style: TextStyle(color: Colors.black)))),
-                  TableCell(child: Center(child: Text('Занятие', style: TextStyle(color: Colors.black)))),
+                  TableCell(
+                      child: Center(
+                          child: Text('Время',
+                              style: TextStyle(color: Colors.black)))),
+                  TableCell(
+                      child: Center(
+                          child: Text('№',
+                              style: TextStyle(color: Colors.black)))),
+                  TableCell(
+                      child: Center(
+                          child: Text('Занятие',
+                              style: TextStyle(color: Colors.black)))),
                 ],
               ),
               for (var schedule in daySchedules)
@@ -111,6 +120,10 @@ class ScheduleDayCard extends StatelessWidget {
                                   'Группа: ${schedule.group.name}',
                                   style: const TextStyle(color: Colors.black),
                                 ),
+                              Text(
+                                'Аудитория: ${schedule.auditory}',
+                                style: const TextStyle(color: Colors.black),
+                              ),
                             ],
                           ),
                         ),

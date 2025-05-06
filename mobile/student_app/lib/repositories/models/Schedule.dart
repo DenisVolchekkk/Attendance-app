@@ -17,6 +17,9 @@ class Schedule extends Equatable  {
     required this.startTime,
     required this.endTime,
     required this.dayOfWeek,
+    required this.semestr,
+    required this.studyYear,
+    required this.auditory,
     required this.groupId,
     required this.group,
     required this.teacherId,
@@ -33,16 +36,22 @@ class Schedule extends Equatable  {
   @HiveField(3)
   final int dayOfWeek;
   @HiveField(4)
-  final int groupId;
+  final int semestr;
   @HiveField(5)
-  final Group group;
+  final int studyYear;
   @HiveField(6)
-  final int teacherId; 
+  final String auditory;
   @HiveField(7)
-  final Teacher teacher; 
+  final int groupId;
   @HiveField(8)
-  final int disciplineId;
+  final Group group;
   @HiveField(9)
+  final int teacherId; 
+  @HiveField(10)
+  final Teacher teacher; 
+  @HiveField(11)
+  final int disciplineId;
+  @HiveField(12)
   final Discipline discipline;
 
   factory Schedule.fromJson(Map<String, dynamic> json) => _$ScheduleFromJson(json);
@@ -50,7 +59,7 @@ class Schedule extends Equatable  {
   Map<String, dynamic> toJson() =>  _$ScheduleToJson(this); 
 
   @override
-  List<Object> get props => [id, startTime, endTime, dayOfWeek, groupId, teacherId, disciplineId];
+  List<Object> get props => [id, startTime, endTime, dayOfWeek, semestr, studyYear, auditory,  groupId, teacherId, disciplineId];
 
 
 

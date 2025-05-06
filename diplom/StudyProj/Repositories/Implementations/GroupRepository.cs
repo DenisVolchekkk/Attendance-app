@@ -13,15 +13,15 @@ namespace StudyProj.Repositories.Implementations
             var Groups = Context.Set<Group>().AsQueryable();
             if (!string.IsNullOrEmpty(group.Name))
             {
-                Groups = Groups.Where(d => d.Name.Contains(group.Name));
+                Groups = Groups.Where(d => d.Name == group.Name);
             }
-            if(group.Chief != null && !string.IsNullOrEmpty(group.Chief.Name))
-            {
-                Groups = Groups.Where(d => d.Chief.Name.Contains(group.Chief.Name));
-            }
+            //if(group.Chief != null && !string.IsNullOrEmpty(group.Chief.Name))
+            //{
+            //    Groups = Groups.Where(d => d.Chief.Name == group.Chief.Name);
+            //}
             if (group.Facility != null && !string.IsNullOrEmpty(group.Facility.Name))
             {
-                Groups = Groups.Where(d => d.Facility.Name.Contains(group.Facility.Name));
+                Groups = Groups.Where(d => d.Facility.Name == group.Facility.Name);
             }
             return await Groups.ToListAsync();  // Асинхронное получение всех записей
         }

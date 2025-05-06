@@ -81,6 +81,25 @@ class AttendanceRouteArgs {
 }
 
 /// generated route for
+/// [GuideScreen]
+class GuideRoute extends PageRouteInfo<void> {
+  const GuideRoute({List<PageRouteInfo>? children})
+      : super(
+          GuideRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'GuideRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const GuideScreen();
+    },
+  );
+}
+
+/// generated route for
 /// [LoginScreen]
 class LoginRoute extends PageRouteInfo<void> {
   const LoginRoute({List<PageRouteInfo>? children})

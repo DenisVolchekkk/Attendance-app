@@ -12,7 +12,7 @@ namespace Presentation.Controllers
 {
     public class DisciplineController : Controller
     {
-        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
+        Uri baseAddress = new Uri("http://localhost:5182/api");
         private readonly HttpClient _client;
 
         public DisciplineController()

@@ -36,7 +36,7 @@ namespace StudyProj.Controllers
             {
                 var errors = result.Errors.Select(e => e.Description);
 
-                return BadRequest(new RegistrationResponseDto { Errors = errors});
+                return BadRequest(new RegistrationResponseDto { Errors = errors });
             }
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -45,10 +45,17 @@ namespace StudyProj.Controllers
                 { "token", token },
                 { "email", user.Email}
             };
-
             var callback = QueryHelpers.AddQueryString(userForResitration.ClientUri!, param);
 
-            var message = new Message([user.Email], "Token to confirm email", callback, null);
+            // Создаем HTML сообщение с кликабельной ссылкой
+            var link = $"<a href='{callback}'>Подтвердите ваш email</a>";
+            var htmlMessage = $"Пожалуйста, подтвердите ваш email, перейдя по ссылке: {link}";
+
+            var message = new Message(
+                new[] { user.Email },
+                "Подтверждение email",
+                htmlMessage,  // Теперь это HTML содержимое
+                null);
 
             await _emailSender.SendEmailAsync(message);
 

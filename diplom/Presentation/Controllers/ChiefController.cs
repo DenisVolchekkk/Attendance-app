@@ -5,11 +5,12 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Domain.ViewModel;
 using Presentation.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 namespace Presentation.Controllers
 {
     public class ChiefController : Controller
     {
-        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
+        Uri baseAddress = new Uri("http://localhost:5182/api");
         private readonly HttpClient _client;
 
         public ChiefController()
@@ -37,18 +38,20 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(string sortOrder, string searchString, int? pageNumber, int pageSize = 20)
+        public IActionResult Index(string sortOrder, string searchString, string searchGroup, int? pageNumber, int pageSize = 20)
         {
             AddAuthorizationHeader();
 
             // Параметры сортировки
             ViewData["CurrentSort"] = sortOrder;
             ViewData["NameSortParm"] = string.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["GroupSortParm"] = string.IsNullOrEmpty(sortOrder) ? "group_desc" : "group";
             ViewData["CurrentPageSize"] = pageSize;
             ViewData["CurrentFilter"] = searchString;
+            ViewData["SearchGroup"] = searchGroup;
 
             IQueryable<Chief> ChiefList = null;
-            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Chief/Filter?Name=" + searchString).Result;
+            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Chief/Filter?Name={searchString}&Group.Name={searchGroup}").Result;
 
             if (response.IsSuccessStatusCode)
             {
@@ -60,6 +63,12 @@ namespace Presentation.Controllers
                 {
                     case "name_desc":
                         ChiefList = ChiefList.OrderByDescending(c => c.Name);
+                        break;
+                    case "group_desc":
+                        ChiefList = ChiefList.OrderByDescending(c => c.Group.Name);
+                        break;
+                    case "group":
+                        ChiefList = ChiefList.OrderBy(c => c.Group.Name);
                         break;
                     default:
                         ChiefList = ChiefList.OrderBy(c => c.Name);
@@ -82,7 +91,7 @@ namespace Presentation.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-
+            SetViewDataAsync();
             return View();
         }
 
@@ -121,6 +130,8 @@ namespace Presentation.Controllers
                 {
                     string data = response.Content.ReadAsStringAsync().Result;
                     Chief = JsonConvert.DeserializeObject<ChiefViewModel>(data);
+                    SetViewDataAsync(Chief.GroupId);
+
                 }
                 return View(Chief);
             }
@@ -156,6 +167,8 @@ namespace Presentation.Controllers
                 {
                     string data = response.Content.ReadAsStringAsync().Result;
                     Chief = JsonConvert.DeserializeObject<ChiefViewModel>(data);
+                    SetViewDataAsync(Chief.GroupId);
+
                 }
                 return View(Chief);
             }
@@ -187,6 +200,19 @@ namespace Presentation.Controllers
             }
 
         }
+        private void SetViewDataAsync( int? groupId = null)
+        {
+            AddAuthorizationHeader();
+            List<Group> groupList = new List<Group>();
+            HttpResponseMessage response1 = _client.GetAsync(_client.BaseAddress + "/Group/GetAll").Result;
+            if (response1.IsSuccessStatusCode)
+            {
+                string data = response1.Content.ReadAsStringAsync().Result;
+                groupList = JsonConvert.DeserializeObject<List<Group>>(data);
+            }
+            ViewData["GroupId"] = new SelectList(groupList, "Id", "Name", groupId);
 
+
+        }
     }
 }

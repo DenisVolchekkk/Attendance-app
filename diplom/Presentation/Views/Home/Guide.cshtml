@@ -1,0 +1,235 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Полное руководство пользователя системы учета посещаемости</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            margin: 0 auto;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+        h2 {
+            color: #3498db;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2980b9;
+            margin-top: 25px;
+        }
+        .screenshot {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            margin: 15px auto;
+            display: block;
+            border-radius: 4px;
+        }
+        .image-caption {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #e8f4fc;
+            border-left: 4px solid #3498db;
+            padding: 12px 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .warning {
+            background-color: #fff3e0;
+            border-left: 4px solid #ffa000;
+            padding: 12px 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .credentials {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 25px 0;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+        .media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>РУКОВОДСТВО ПОЛЬЗОВАТЕЛЯ СИСТЕМЫ УЧЕТА ПОСЕЩАЕМОСТИ</h1>
+
+        <h2>1. Введение</h2>
+        <p>Данное руководство описывает функционал системы учета посещаемости студентов. Система предназначена для автоматизации процесса учета посещаемости занятий и формирования отчетности.</p>
+
+        <h2>2. Начало работы</h2>
+        <h3>2.1. Главная страница</h3>
+        <img src="https://i.imgur.com/T5E4CCV.png" alt="Главная страница" class="screenshot">
+        <p class="image-caption">Рисунок 1 -- Главная страница приложения</p>
+        <p>При первом посещении системы пользователь видит главную страницу с двумя основными кнопками:</p>
+        <ul>
+            <li><strong>«Вход»</strong> - для авторизации существующих пользователей</li>
+            <li><strong>«Регистрация»</strong> - для создания нового аккаунта</li>
+        </ul>
+
+        <h3>2.2. Регистрация нового пользователя</h3>
+        <img src="https://i.imgur.com/uO11jVS.png" alt="Страница регистрации" class="screenshot">
+        <p class="image-caption">Рисунок 2 -- Страница регистрации</p>
+        <p>Для регистрации необходимо заполнить все поля формы:</p>
+        <ul>
+            <li>ФИО (полное имя)</li>
+            <li>Адрес электронной почты (должен быть действительным)</li>
+            <li>Пароль (соответствующий требованиям сложности)</li>
+            <li>Подтверждение пароля</li>
+        </ul>
+        <div class="note">
+            <strong>Требования к паролю:</strong>
+            <ul>
+                <li>Минимум 8 символов</li>
+                <li>Хотя бы одна заглавная и одна строчная латинская буква</li>
+                <li>Хотя бы одна цифра</li>
+                <li>Хотя бы один специальный символ (!#+$%^&*)</li>
+            </ul>
+        </div>
+
+        <h3>2.3. Аутентификация</h3>
+        <img src="https://i.imgur.com/T08ERYl.png" alt="Страница авторизации" class="screenshot">
+        <p class="image-caption">Рисунок 3 -- Страница аутентификации</p>
+        <p>После успешной регистрации и подтверждения email пользователь может войти в систему, указав:</p>
+        <ul>
+            <li>Email, использованный при регистрации</li>
+            <li>Пароль</li>
+        </ul>
+
+        <div class="credentials">
+            <h3>Тестовые учетные данные (роль "Декан"):</h3>
+            <p><strong>Логин:</strong> denisvochek@gmail.com</p>
+            <p><strong>Пароль:</strong> 19841980Qqq+</p>
+        </div>
+
+        <h2>3. Работа с преподавателями</h2>
+        <h3>3.1. Список преподавателей</h3>
+        <img src="https://i.imgur.com/3UWBGJP.png" alt="Страница преподавателей" class="screenshot">
+        <p class="image-caption">Рисунок 4 -- Страница преподавателей</p>
+        <p>После авторизации пользователь с ролью "Декан" получает доступ к списку преподавателей с возможностью:</p>
+        <ul>
+            <li><strong>Поиска</strong> преподавателей по имени</li>
+            <li><strong>Сброса</strong> фильтров и поиска</li>
+            <li><strong>Сортировки</strong> по различным параметрам</li>
+            <li><strong>Пагинации</strong> (листания по страницам)</li>
+            <li><strong>Изменения количества</strong> отображаемых записей</li>
+            <li><strong>Добавления</strong> новых преподавателей</li>
+            <li><strong>Редактирования</strong> существующих записей</li>
+            <li><strong>Удаления</strong> преподавателей</li>
+            <li>Просмотра <strong>расписания</strong> каждого преподавателя</li>
+        </ul>
+
+        <h3>3.2. Добавление преподавателя</h3>
+        <img src="https://i.imgur.com/3oTe7nY.png" alt="Добавление преподавателя" class="screenshot">
+        <p class="image-caption">Рисунок 5 -- Страница добавления преподавателя</p>
+        <p>Для добавления нового преподавателя необходимо заполнить обязательные поля формы и нажать кнопку "Создать".</p>
+
+        <h3>3.3. Редактирование преподавателя</h3>
+        <img src="https://i.imgur.com/r0oV2bB.png" alt="Редактирование преподавателя" class="screenshot">
+        <p class="image-caption">Рисунок 6 -- Страница обновления преподавателя</p>
+        <p>Для сохранения изменений нажмите кнопку "Сохранить". Для возврата к списку без сохранения - "Вернуться к списку".</p>
+
+        <h3>3.4. Удаление преподавателя</h3>
+        <img src="https://i.imgur.com/JIW33Gk.png" alt="Удаление преподавателя" class="screenshot">
+<p class="image-caption">Рисунок 7 -- Страница удаления преподавателя</p>
+        <div class="warning">
+            <strong>Внимание!</strong> При удалении преподавателя будут также удалены все связанные с ним данные (расписание, записи посещаемости и др.). Это действие невозможно отменить.
+        </div>
+
+        <h2>4. Расписание преподавателей</h2>
+        <img src="https://i.imgur.com/fRIdqzm.png" alt="Расписание преподавателя" class="screenshot">
+        <p class="image-caption">Рисунок 8 -- Страница расписания преподавателя</p>
+        <p>На странице расписания отображаются все занятия преподавателя. Доступные действия:</p>
+        <ul>
+            <li>Возврат к списку преподавателей</li>
+            <li>Переход к странице посещений конкретного занятия</li>
+        </ul>
+
+        <h2>5. Учет посещаемости</h2>
+        <img src="https://i.imgur.com/15y5Duk.png" alt="Посещаемость занятий" class="screenshot">
+        <p class="image-caption">Рисунок 9 -- Страница посещений занятий преподавателя</p>
+        <p>На странице посещений можно:</p>
+        <ul>
+            <li>Отмечать присутствие/отсутствие студентов с помощью переключателей</li>
+            <li>Формировать Excel-отчет по посещаемости</li>
+            <li>Фильтровать записи по различным параметрам</li>
+        </ul>
+
+        <h2>6. Управление дисциплинами</h2>
+        <img src="https://i.imgur.com/uzMyKMc.png" alt="Добавление дисциплин" class="screenshot">
+        <p class="image-caption">Рисунок 10 -- Страница добавления дисциплин</p>
+        <p>Особенности страницы:</p>
+        <ul>
+            <li>Ручное добавление отдельных дисциплин</li>
+            <li>Массовая загрузка дисциплин из Excel-файла учебного плана</li>
+            <li>Просмотр и редактирование списка дисциплин</li>
+        </ul>
+
+        <h2>7. Управление пользователями</h2>
+        <img src="https://i.imgur.com/gnDY9Gx.png" alt="Список пользователей" class="screenshot">
+        <p class="image-caption">Рисунок 11 -- Страница пользователей</p>
+        <p>На странице отображается список всех пользователей системы с их ролями и принадлежностью к факультетам.</p>
+
+        <h3>7.1. Редактирование пользователя</h3>
+        <img src="https://i.imgur.com/EBCnUIO.png" alt="Редактирование пользователя" class="screenshot">
+        <p class="image-caption">Рисунок 12 -- Страница обновления пользователя</p>
+        <div class="warning">
+            <strong>Важно!</strong> Пользователь с ролью "Декан" не должен снимать с себя эту роль, так как восстановить ее сможет только другой пользователь с ролью "Декан". После изменения своих данных необходимо выполнить повторный вход в систему.
+        </div>
+
+        <h2>8. Дополнительные возможности</h2>
+        <p>Система также предоставляет следующие функции:</p>
+        <ul>
+            <li>Массовое создание групп и студентов из Excel-файла</li>
+            <li>Формирование отчетов по посещаемости для групп и факультетов</li>
+            <li>Экспорт данных в различных форматах (Excel, PDF)</li>
+            <li>Фильтрация данных по различным критериям</li>
+        </ul>
+
+        <div class="note">
+            <p>Для получения дополнительной помощи или сообщения о проблемах обращайтесь в службу поддержки:</p>
+            <p><strong>Email:</strong> support@attendance-system.edu</p>
+            <p><strong>Телефон:</strong> +7 (XXX) XXX-XX-XX</p>
+        </div>
+    </div>
+</body>
+</html>

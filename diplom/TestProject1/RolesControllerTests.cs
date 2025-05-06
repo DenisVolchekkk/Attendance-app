@@ -125,7 +125,7 @@ namespace TestProject1
                 .ReturnsAsync((User)null);
 
             // Act
-            var result = await _controller.Put("1", new List<string>());
+            var result = await _controller.Put("1", new List<string>(),1);
 
             // Assert
             Assert.IsType<NotFoundObjectResult>(result);
@@ -149,7 +149,7 @@ namespace TestProject1
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
-            var result = await _controller.Put("1", newRoles);
+            var result = await _controller.Put("1", newRoles,1);
 
             // Assert
             var jsonResult = Assert.IsType<JsonResult>(result);

@@ -12,7 +12,7 @@ namespace StudyProj.Repositories.Implementations
             var Disciplines = Context.Set<Discipline>().AsQueryable();
             if (!string.IsNullOrEmpty(discipline.Name))
             {
-                Disciplines = Disciplines.Where(d => d.Name.Contains(discipline.Name));
+                Disciplines = Disciplines.Where(d => d.Name == discipline.Name);
             }
             return await Disciplines.ToListAsync();  // Асинхронное получение всех записей
         }

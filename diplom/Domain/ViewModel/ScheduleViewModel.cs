@@ -25,6 +25,13 @@ namespace Domain.ViewModel
         [Required(ErrorMessage = "Введите аудиторию")]
         [Display(Name = "Аудитория")]
         public string? Auditory { get; set; }
+        [Display(Name = "Семестр")]
+        [Required(ErrorMessage = "Не указан семестр")]
+        [Range(1, 2, ErrorMessage = "Семестр может быть только 1 или 2")]
+        public int? Semestr { get; set; }
+        [Display(Name = "Год")]
+        [Required(ErrorMessage = "Не указан учебный год")]
+        public int? StudyYear { get; set; }
         [Required(ErrorMessage = "Введите день недели")]
         [Display(Name = "День недели")]
         public DayOfWeek? DayOfWeek { get; set; }

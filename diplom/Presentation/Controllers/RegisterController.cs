@@ -9,7 +9,7 @@ namespace Presentation.Controllers
 {
     public class RegisterController : Controller
     {
-        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
+        Uri baseAddress = new Uri("http://localhost:5182/api");
         private readonly HttpClient _client;
 
         public RegisterController()
@@ -30,7 +30,7 @@ namespace Presentation.Controllers
         {
             try
             {
-                user.ClientUri = "http://ggtuapi.runasp.net/api/Accounts/emailconfirmation";
+                user.ClientUri = "http://localhost:5182/api/Accounts/emailconfirmation";
                 string data = JsonConvert.SerializeObject(user);
 
                 StringContent content = new StringContent(data, Encoding.UTF8, "application/json");

@@ -15,13 +15,10 @@ namespace StudyProj.Controllers
     public class GroupController : ControllerBase
     {
         private IGroupService Groups { get; set; }
-        UserManager<User> _userManager;
 
-        public GroupController(IGroupService Group, UserManager<User> userManager)
+        public GroupController(IGroupService Group)
         {
             Groups = Group;
-            _userManager = userManager;
-
         }
 
         [HttpGet]
@@ -56,11 +53,11 @@ namespace StudyProj.Controllers
             // Если у пользователя нет факультета - возвращаем пустой список
             if (facId.IsNullOrEmpty())
             {
-                return new JsonResult(await Groups.GetAllAsync());
+                return new JsonResult(await Groups.GetAllAsync(group));
             }
             else
             {
-                var groups = await Groups.GetAllAsync();
+                var groups = await Groups.GetAllAsync(group);
                 var filteredGroups = groups.Where(g => g.FacilityId == int.Parse(facId)).ToList();
                 return new JsonResult(filteredGroups);
             }

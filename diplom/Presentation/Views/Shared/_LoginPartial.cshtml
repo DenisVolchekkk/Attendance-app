@@ -23,14 +23,21 @@
             <button  type="submit" class="nav-link btn btn-link text-dark">Выход</button>
         </form>
     </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Guide">Гайд</a>
+    </li>
 }
 else
 {
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Guide">Гайд</a>
+    </li>
     <li class="nav-item">
             <a class="nav-link text-dark" asp-area="" asp-controller="Register" asp-action="Register">Регистрация </a>
     </li>
     <li class="nav-item">
         <a class="nav-link text-dark" asp-area="" asp-controller="Register" asp-action="Authentication">Вход</a>
     </li>
+
 }
 </ul>

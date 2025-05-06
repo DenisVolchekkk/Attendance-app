@@ -17,6 +17,10 @@ namespace Domain.Models
         public string? Auditory { get; set; }
         [Display(Name = "День недели")]
         public DayOfWeek? DayOfWeek { get; set; }
+        [Display(Name = "Семестр")]
+        public int? Semestr { get; set; }
+        [Display(Name = "Год")]
+        public int? StudyYear { get; set; }
         [Display(Name = "Группа")]
         public int GroupId { get; set; }
         [Display(Name = "Преподаватель")]

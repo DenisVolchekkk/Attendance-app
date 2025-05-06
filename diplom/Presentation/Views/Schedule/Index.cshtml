@@ -53,7 +53,8 @@
             <input type="text" placeholder="День недели" name="SearchDayOfWeek" value="@ViewData["SearchDayOfWeek"]" />
             <input type="text" placeholder="Преподаватель" name="SearchTeacherName" value="@ViewData["SearchTeacherName"]" />
             <input type="text" placeholder="Дисциплина" name="SearchDisciplineName" value="@ViewData["SearchDisciplineName"]" />
-
+            <input type="text" placeholder="Семестр" name="SearchSemestr" value="@ViewData["SearchSemestr"]" />
+            <input type="text" placeholder="Учебный год" name="SearchStudyYear" value="@ViewData["SearchStudyYear"]" />
             <label for="pageSize">Записей:</label>
             <input type="number" id="pageSize" name="pageSize"
                    min="1" max="1000" step="1"
@@ -73,6 +74,8 @@
         <input type="hidden" name="SearchDayOfWeek" value="@ViewData["SearchDayOfWeek"]" />
         <input type="hidden" name="SearchTeacherName" value="@ViewData["SearchTeacherName"]" />
         <input type="hidden" name="SearchDisciplineName" value="@ViewData["SearchDisciplineName"]" />
+        <input type="hidden" name="SearchSemestr" value="@ViewData["SearchSemestr"]" />
+        <input type="hidden" name="SearchStudyYear" value="@ViewData["SearchStudyYear"]" />
         <button type="submit" class="btn btn-primary">Сформировать отчет</button>
     </form>
 }
@@ -86,8 +89,9 @@
                    asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
                    asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
                    asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]" 
-                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]">
-
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+                   asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]">
                     Начало
                     @if (ViewData["CurrentSort"]?.ToString() == "startTime_desc")
                     {
@@ -106,7 +110,9 @@
                    asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
                    asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
                    asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
-                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]">
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+                   asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]">
                     Конец
                     @if (ViewData["CurrentSort"]?.ToString() == "endTime_desc")
                     {
@@ -125,7 +131,9 @@
                    asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
                    asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
                    asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
-                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]">
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+                   asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]">
                     День недели
                     @if (ViewData["CurrentSort"]?.ToString() == "dayOfWeek_desc")
                     {
@@ -144,7 +152,9 @@
                    asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
                    asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
                    asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
-                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]">
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+                   asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]">
                     Группа
                     @if (ViewData["CurrentSort"]?.ToString() == "group_desc")
                     {
@@ -163,7 +173,9 @@
                    asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
                    asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
                    asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
-                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]">
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+                   asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]">
                     Преподаватель
                     @if (ViewData["CurrentSort"]?.ToString() == "teacher_desc")
                     {
@@ -182,7 +194,9 @@
                    asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
                    asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
                    asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
-                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]">
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+                   asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]">
                     Дисциплина
                     @if (ViewData["CurrentSort"]?.ToString() == "discipline_desc")
                     {
@@ -201,13 +215,57 @@
                    asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
                    asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
                    asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
-                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]">
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+                   asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]">
                     Дисциплина
                     @if (ViewData["CurrentSort"]?.ToString() == "auditory_desc")
                     {
                         <span>▼</span>
                     }
                     else if (ViewData["CurrentSort"]?.ToString() == "auditory")
+                    {
+                        <span>▲</span>
+                    }
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["SemestrSortParm"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+                   asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
+                   asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+                   asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]">
+                    Семестр
+                    @if (ViewData["CurrentSort"]?.ToString() == "semestr_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else if (ViewData["CurrentSort"]?.ToString() == "semestr")
+                    {
+                        <span>▲</span>
+                    }
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["StudyYearSortParm"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+                   asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
+                   asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+                   asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]">
+                    Год
+                    @if (ViewData["CurrentSort"]?.ToString() == "studyYear_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else if (ViewData["CurrentSort"]?.ToString() == "studyYear")
                     {
                         <span>▲</span>
                     }
@@ -231,6 +289,8 @@
                 <td>@Html.DisplayFor(modelItem => item.Teacher.Name)</td>
                 <td>@Html.DisplayFor(modelItem => item.Discipline.Name)</td>
                 <td>@Html.DisplayFor(modelItem => item.Auditory)</td>
+                <td>@Html.DisplayFor(modelItem => item.Semestr)</td>
+                <td>@Html.DisplayFor(modelItem => item.StudyYear)</td>
                 @if (roles.Any(r => r != "Chief" && r != "Teacher"))
                 {
                     <td>
@@ -252,7 +312,9 @@
        asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
        asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
        asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
-       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+       asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+       asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]"
+       class="@(!Model.HasPreviousPage ? "disabled" : "")" style="margin-right: 20px;">
         Предыдущая
     </a>
 
@@ -264,6 +326,8 @@
        asp-route-SearchDayOfWeek="@ViewData["SearchDayOfWeek"]"
        asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
        asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+       asp-route-SearchSemestr="@ViewData["SearchSemestr"]"
+       asp-route-SearchStudyYear="@ViewData["SearchStudyYear"]"
        class="@(!Model.HasNextPage ? "disabled" : "")">
         Следующая
     </a>

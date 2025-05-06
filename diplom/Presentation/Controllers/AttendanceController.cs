@@ -18,7 +18,7 @@ namespace Presentation.Controllers
 {
     public class AttendanceController : Controller
     {
-        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
+        Uri baseAddress = new Uri("http://localhost:5182/api");
         private readonly HttpClient _client;
 
         public AttendanceController()
@@ -54,6 +54,7 @@ namespace Presentation.Controllers
             ViewData["DisciplineSortParm"] = sortOrder == "discipline" ? "discipline_desc" : "discipline";
             ViewData["PresenceSortParm"] = sortOrder == "presence" ? "presence_desc" : "presence";
             ViewData["AuditorySortParm"] = sortOrder == "auditory" ? "auditory_desc" : "auditory";
+            ViewData["GroupSortParm"] = sortOrder == "group" ? "group_desc" : "group";
             ViewData["CurrentPageSize"] = pageSize;
             // Сохраняем параметры поиска
             ViewData["SearchStudentName"] = SearchStudentName;
@@ -464,6 +465,10 @@ namespace Presentation.Controllers
                     return attendanceList.OrderBy(a => a.Schedule.Auditory);
                 case "auditory_desc":
                     return attendanceList.OrderByDescending(a => a.Schedule.Auditory);
+                case "group":
+                    return attendanceList.OrderBy(a => a.Schedule.Group.Name);
+                case "group_desc":
+                    return attendanceList.OrderByDescending(a => a.Schedule.Group.Name);
                 default:
                     return attendanceList.OrderBy(a => a.Student.Name);
             }

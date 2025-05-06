@@ -25,7 +25,7 @@ namespace Presentation.Controllers
                 {"суббота", DayOfWeek.Saturday},
                 {"воскресенье", DayOfWeek.Sunday}
             };
-        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
+        Uri baseAddress = new Uri("http://localhost:5182/api");
         private readonly HttpClient _client;
 
         public ScheduleController()
@@ -52,7 +52,7 @@ namespace Presentation.Controllers
         }
         [HttpGet]
         public IActionResult Index(string sortOrder, string SearchStartTime, string SearchDayOfWeek,
-    string SearchTeacherName, string SearchDisciplineName, int? pageNumber, int pageSize = 20)
+    string SearchTeacherName, string SearchDisciplineName, string SearchSemestr, string SearchStudyYear, int? pageNumber, int pageSize = 20)
         {
             AddAuthorizationHeader();
 
@@ -65,6 +65,8 @@ namespace Presentation.Controllers
             ViewData["TeacherSortParm"] = sortOrder == "teacher" ? "teacher_desc" : "teacher";
             ViewData["DisciplineSortParm"] = sortOrder == "discipline" ? "discipline_desc" : "discipline";
             ViewData["AuditorySortParm"] = sortOrder == "auditory" ? "auditory_desc" : "auditory";
+            ViewData["SemestrSortParm"] = sortOrder == "semestr" ? "semestr_desc" : "semestr";
+            ViewData["StudyYearSortParm"] = sortOrder == "studyYear" ? "studyYear_desc" : "studyYear";
             ViewData["CurrentPageSize"] = pageSize;
 
             // Параметры поиска
@@ -72,7 +74,8 @@ namespace Presentation.Controllers
             ViewData["SearchDayOfWeek"] = SearchDayOfWeek;
             ViewData["SearchTeacherName"] = SearchTeacherName;
             ViewData["SearchDisciplineName"] = SearchDisciplineName;
-
+            ViewData["SearchSemestr"] = SearchSemestr;
+            ViewData["SearchStudyYear"] = SearchStudyYear;
             HttpResponseMessage response;
             TimeSpan.TryParse(SearchStartTime, out var result);
             string formattedTime = result.ToString("hh\\:mm\\:ss");
@@ -96,11 +99,11 @@ namespace Presentation.Controllers
 
             if (result.TotalMinutes != 0)
             {
-                response = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?StartTime={encodedTime}&DayOfWeek={res}&Teacher.Name={SearchTeacherName}&Discipline.Name={SearchDisciplineName}").Result;
+                response = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?StartTime={encodedTime}&DayOfWeek={res}&Teacher.Name={SearchTeacherName}&Discipline.Name={SearchDisciplineName}&Semestr={SearchSemestr}&StudyYear={SearchStudyYear}").Result;
             }
             else
             {
-                response = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?DayOfWeek={res}&Teacher.Name={SearchTeacherName}&Discipline.Name={SearchDisciplineName}").Result;
+                response = _client.GetAsync($"{_client.BaseAddress}/Schedule/Filter?DayOfWeek={res}&Teacher.Name={SearchTeacherName}&Discipline.Name={SearchDisciplineName}&Semestr={SearchSemestr}&StudyYear={SearchStudyYear}").Result;
             }
 
             IQueryable<Schedule> ScheduleList = null;
@@ -156,6 +159,14 @@ namespace Presentation.Controllers
                     return scheduleList.OrderBy(s => s.Auditory);
                 case "auditory_desc":
                     return scheduleList.OrderByDescending(s => s.Auditory);
+                case "semestr":
+                    return scheduleList.OrderBy(s => s.Semestr);
+                case "semestr_desc":
+                    return scheduleList.OrderByDescending(s => s.Semestr);
+                case "studyYear":
+                    return scheduleList.OrderBy(s => s.StudyYear);
+                case "studyYear_desc":
+                    return scheduleList.OrderByDescending(s => s.StudyYear);
                 default:
                     return scheduleList.OrderBy(s => s.StartTime);
             }

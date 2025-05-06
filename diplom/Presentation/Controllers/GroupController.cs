@@ -14,7 +14,7 @@ namespace Presentation.Controllers
 {
     public class GroupController : Controller
     {
-        Uri baseAddress = new Uri("http://ggtuapi.runasp.net/api");
+        Uri baseAddress = new Uri("http://localhost:5182/api");
         private readonly HttpClient _client;
 
         public GroupController()
@@ -41,7 +41,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(string sortOrder, string searchGroupName, string searchChiefName,
+        public IActionResult Index(string sortOrder, string searchGroupName,
             string searchFacilityName, int? pageNumber, int pageSize = 20)
         {
             AddAuthorizationHeader();
@@ -55,11 +55,11 @@ namespace Presentation.Controllers
 
             // Параметры поиска
             ViewData["SearchGroupName"] = searchGroupName;
-            ViewData["SearchChiefName"] = searchChiefName;
+            //ViewData["SearchChiefName"] = searchChiefName;
             ViewData["SearchFacilityName"] = searchFacilityName;
 
             IQueryable<Group> GroupList = null;
-            HttpResponseMessage response = _client.GetAsync($"{_client.BaseAddress}/Group/Filter?Name={searchGroupName}&Chief.Name={searchChiefName}&Facility.Name={searchFacilityName}").Result;
+            HttpResponseMessage response = _client.GetAsync($"{_client.BaseAddress}/Group/Filter?Name={searchGroupName}&Facility.Name={searchFacilityName}").Result;
 
             if (response.IsSuccessStatusCode)
             {
@@ -91,12 +91,12 @@ namespace Presentation.Controllers
                 case "group_desc":
                     GroupList = GroupList.OrderByDescending(g => g.Name);
                     return GroupList;
-                case "chief":
-                    GroupList = GroupList.OrderBy(g => g.Chief != null ? g.Chief.Name ?? string.Empty : string.Empty);
-                    return GroupList;
-                case "chief_desc":
-                    GroupList = GroupList.OrderByDescending(g => g.Chief != null ? g.Chief.Name ?? string.Empty : string.Empty);
-                    return GroupList;
+                //case "chief":
+                //    GroupList = GroupList.OrderBy(g => g.Chief != null ? g.Chief.Name ?? string.Empty : string.Empty);
+                //    return GroupList;
+                //case "chief_desc":
+                //    GroupList = GroupList.OrderByDescending(g => g.Chief != null ? g.Chief.Name ?? string.Empty : string.Empty);
+                //    return GroupList;
                 case "facility":
                     GroupList = GroupList.OrderBy(g => g.Facility != null ? g.Facility.Name ?? string.Empty : string.Empty);
                     return GroupList;
@@ -156,7 +156,7 @@ namespace Presentation.Controllers
                 {
                     string data = response.Content.ReadAsStringAsync().Result;
                     Group =  JsonConvert.DeserializeObject<GroupViewModel>(data);
-                    SetViewDataAsync(Group.FacilityId, Group.ChiefId);
+                    SetViewDataAsync(Group.FacilityId);
                 }
                 return View(Group);
             }
@@ -200,7 +200,7 @@ namespace Presentation.Controllers
                 {
                     string data = response.Content.ReadAsStringAsync().Result;
                     Group = JsonConvert.DeserializeObject<GroupViewModel>(data);
-                    SetViewDataAsync(Group.FacilityId, Group.ChiefId);
+                    SetViewDataAsync(Group.FacilityId);
                 }
                 return View(Group);
             }
@@ -371,7 +371,6 @@ namespace Presentation.Controllers
                             var group = new GroupViewModel
                             {
                                 Name = groupData.Key,
-                                ChiefId = null
                             };
 
                             // Отправляем запрос
@@ -429,12 +428,12 @@ namespace Presentation.Controllers
             }
         }
         [HttpPost]
-        public IActionResult GenerateReport(string sortOrder, string searchGroupName, string searchChiefName, string searchFacilityName)
+        public IActionResult GenerateReport(string sortOrder, string searchGroupName, string searchFacilityName)
         {
             AddAuthorizationHeader();
 
             // Получаем данные для отчета
-            HttpResponseMessage response = _client.GetAsync($"{_client.BaseAddress}/Group/Filter?Name={searchGroupName}&Chief.Name={searchChiefName}&Facility.Name={searchFacilityName}").Result;
+            HttpResponseMessage response = _client.GetAsync($"{_client.BaseAddress}/Group/Filter?Name={searchGroupName}&Facility.Name={searchFacilityName}").Result;
 
             if (!response.IsSuccessStatusCode)
             {
@@ -460,11 +459,11 @@ namespace Presentation.Controllers
             // Заголовки столбцов
             IRow headerRow = sheet.CreateRow(0);
             headerRow.CreateCell(0).SetCellValue("Название группы");
-            headerRow.CreateCell(1).SetCellValue("Староста");
-            headerRow.CreateCell(2).SetCellValue("Факультет");
+            //headerRow.CreateCell(1).SetCellValue("Староста");
+            headerRow.CreateCell(1).SetCellValue("Факультет");
 
             // Применяем стиль к заголовкам
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 2; i++)
             {
                 headerRow.GetCell(i).CellStyle = headerStyle;
             }
@@ -475,12 +474,12 @@ namespace Presentation.Controllers
             {
                 IRow row = sheet.CreateRow(rowNum++);
                 row.CreateCell(0).SetCellValue(group.Name);
-                row.CreateCell(1).SetCellValue(group.Chief?.Name ?? "-");
-                row.CreateCell(2).SetCellValue(group.Facility?.Name ?? "-");
+                //row.CreateCell(1).SetCellValue(group.Chief?.Name ?? "-");
+                row.CreateCell(1).SetCellValue(group.Facility?.Name ?? "-");
             }
 
             // Автонастройка ширины столбцов
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 2; i++)
             {
                 sheet.AutoSizeColumn(i);
             }

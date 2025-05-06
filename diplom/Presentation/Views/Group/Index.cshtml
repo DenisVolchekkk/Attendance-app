@@ -36,7 +36,6 @@
     <div class="form-actions no-color">
         <p>
             <input type="text" placeholder="Группа" name="searchGroupName" value="@ViewData["SearchGroupName"]" />
-            <input type="text" placeholder="Староста" name="searchChiefName" value="@ViewData["SearchChiefName"]" />
             <input type="text" placeholder="Факультет" name="searchFacilityName" value="@ViewData["SearchFacilityName"]" />
 
             <label for="pageSize">Записей:</label>
@@ -56,7 +55,6 @@
     <form asp-action="GenerateReport" method="post" style="display: inline;">
         <input type="hidden" name="sortOrder" value="@ViewData["CurrentSort"]" />
         <input type="hidden" name="searchGroupName" value="@ViewData["SearchGroupName"]" />
-        <input type="hidden" name="searchChiefName" value="@ViewData["SearchChiefName"]" />
         <input type="hidden" name="searchFacilityName" value="@ViewData["SearchFacilityName"]" />
         <button type="submit" class="btn btn-primary">Сформировать отчет</button>
     </form>
@@ -69,7 +67,6 @@
                    asp-route-sortOrder="@ViewData["GroupNameSortParm"]"
                    asp-route-pageSize="@ViewData["CurrentPageSize"]"
                    asp-route-searchGroupName="@ViewData["SearchGroupName"]"
-                   asp-route-searchChiefName="@ViewData["SearchChiefName"]"
                    asp-route-searchFacilityName="@ViewData["SearchFacilityName"]">
                     Название
                     @if (ViewData["CurrentSort"]?.ToString() == "group_desc")
@@ -82,7 +79,7 @@
                     }
                 </a>
             </th>
-            <th>
+@*             <th>
                 <a asp-action="Index"
                    asp-route-sortOrder="@ViewData["ChiefNameSortParm"]"
                    asp-route-pageSize="@ViewData["CurrentPageSize"]"
@@ -99,13 +96,12 @@
                         <span>▲</span>
                     }
                 </a>
-            </th>
+            </th> *@
             <th>
                 <a asp-action="Index"
                    asp-route-sortOrder="@ViewData["FacilityNameSortParm"]"
                    asp-route-pageSize="@ViewData["CurrentPageSize"]"
                    asp-route-searchGroupName="@ViewData["SearchGroupName"]"
-                   asp-route-searchChiefName="@ViewData["SearchChiefName"]"
                    asp-route-searchFacilityName="@ViewData["SearchFacilityName"]">
                     Факультет
                     @if (ViewData["CurrentSort"]?.ToString() == "facility_desc")
@@ -129,8 +125,8 @@
         {
             <tr>
                 <td>@Html.DisplayFor(modelItem => item.Name)</td>
-                <td>@Html.DisplayFor(modelItem => item.Chief.Name)</td>
-                <td>@Html.DisplayFor(modelItem => item.Facility.Name)</td>
+@*                 <td>@Html.DisplayFor(modelItem => item.Chief.Name)</td>
+ *@                <td>@Html.DisplayFor(modelItem => item.Facility.Name)</td>
                 @if (roles.Any(r => r != "Chief" && r != "Teacher"))
                 {
                     <td>
@@ -149,9 +145,8 @@
        asp-route-pageSize="@ViewData["CurrentPageSize"]"
        asp-route-pageNumber="@(Model.PageIndex - 1)"
        asp-route-searchGroupName="@ViewData["SearchGroupName"]"
-       asp-route-searchChiefName="@ViewData["SearchChiefName"]"
        asp-route-searchFacilityName="@ViewData["SearchFacilityName"]"
-       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+       class="@(!Model.HasPreviousPage ? "disabled" : "")" style="margin-right: 20px;">
         Предыдущая
     </a>
 
@@ -160,7 +155,6 @@
        asp-route-pageSize="@ViewData["CurrentPageSize"]"
        asp-route-pageNumber="@(Model.PageIndex + 1)"
        asp-route-searchGroupName="@ViewData["SearchGroupName"]"
-       asp-route-searchChiefName="@ViewData["SearchChiefName"]"
        asp-route-searchFacilityName="@ViewData["SearchFacilityName"]"
        class="@(!Model.HasNextPage ? "disabled" : "")">
         Следующая

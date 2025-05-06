@@ -97,7 +97,7 @@
        asp-route-pageSize="@ViewData["CurrentPageSize"]"
        asp-route-pageNumber="@(Model.PageIndex - 1)"
        asp-route-searchString="@ViewData["CurrentFilter"]"
-       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+       class="@(!Model.HasPreviousPage ? "disabled" : "")" style="margin-right: 20px;">
         Предыдущая
     </a>
 

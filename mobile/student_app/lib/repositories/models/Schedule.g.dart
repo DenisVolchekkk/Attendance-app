@@ -21,19 +21,22 @@ class ScheduleAdapter extends TypeAdapter<Schedule> {
       startTime: fields[1] as TimeOfDay,
       endTime: fields[2] as TimeOfDay,
       dayOfWeek: fields[3] as int,
-      groupId: fields[4] as int,
-      group: fields[5] as Group,
-      teacherId: fields[6] as int,
-      teacher: fields[7] as Teacher,
-      disciplineId: fields[8] as int,
-      discipline: fields[9] as Discipline,
+      semestr: fields[4] as int,
+      studyYear: fields[5] as int,
+      auditory: fields[6] as String,
+      groupId: fields[7] as int,
+      group: fields[8] as Group,
+      teacherId: fields[9] as int,
+      teacher: fields[10] as Teacher,
+      disciplineId: fields[11] as int,
+      discipline: fields[12] as Discipline,
     );
   }
 
   @override
   void write(BinaryWriter writer, Schedule obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -43,16 +46,22 @@ class ScheduleAdapter extends TypeAdapter<Schedule> {
       ..writeByte(3)
       ..write(obj.dayOfWeek)
       ..writeByte(4)
-      ..write(obj.groupId)
+      ..write(obj.semestr)
       ..writeByte(5)
-      ..write(obj.group)
+      ..write(obj.studyYear)
       ..writeByte(6)
-      ..write(obj.teacherId)
+      ..write(obj.auditory)
       ..writeByte(7)
-      ..write(obj.teacher)
+      ..write(obj.groupId)
       ..writeByte(8)
-      ..write(obj.disciplineId)
+      ..write(obj.group)
       ..writeByte(9)
+      ..write(obj.teacherId)
+      ..writeByte(10)
+      ..write(obj.teacher)
+      ..writeByte(11)
+      ..write(obj.disciplineId)
+      ..writeByte(12)
       ..write(obj.discipline);
   }
 
@@ -77,6 +86,9 @@ Schedule _$ScheduleFromJson(Map<String, dynamic> json) => Schedule(
           const TimeOfDayConverter().fromJson(json['startTime'] as String),
       endTime: const TimeOfDayConverter().fromJson(json['endTime'] as String),
       dayOfWeek: (json['dayOfWeek'] as num).toInt(),
+      semestr: (json['semestr'] as num).toInt(),
+      studyYear: (json['studyYear'] as num).toInt(),
+      auditory: json['auditory'] as String,
       groupId: (json['groupId'] as num).toInt(),
       group: Group.fromJson(json['group'] as Map<String, dynamic>),
       teacherId: (json['teacherId'] as num).toInt(),
@@ -91,6 +103,9 @@ Map<String, dynamic> _$ScheduleToJson(Schedule instance) => <String, dynamic>{
       'startTime': const TimeOfDayConverter().toJson(instance.startTime),
       'endTime': const TimeOfDayConverter().toJson(instance.endTime),
       'dayOfWeek': instance.dayOfWeek,
+      'semestr': instance.semestr,
+      'studyYear': instance.studyYear,
+      'auditory': instance.auditory,
       'groupId': instance.groupId,
       'group': instance.group,
       'teacherId': instance.teacherId,

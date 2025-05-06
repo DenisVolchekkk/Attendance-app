@@ -160,6 +160,28 @@
             </th>
             <th>
                 <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["GroupSortParm"]"
+                   asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
+                   asp-route-SearchAttendanceDate="@ViewData["SearchAttendanceDate"]"
+                   asp-route-pageSize="@ViewData["CurrentPageSize"]"
+                   asp-route-SearchDisciplineName="@ViewData["SearchDisciplineName"]"
+                   asp-route-SearchStartTime="@ViewData["SearchStartTime"]"
+                   asp-route-SearchTeacherName="@ViewData["SearchTeacherName"]"
+                   asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
+                   asp-route-SearchGroupName="@ViewData["SearchGroupName"]">
+                    Группа
+                    @if (ViewData["CurrentSort"]?.ToString() == "group_desc")
+                    {
+                        <span>▼</span>
+                    }
+                    else if (ViewData["CurrentSort"]?.ToString() == "group")
+                    {
+                        <span>▲</span>
+                    }
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index"
                    asp-route-sortOrder="@ViewData["AuditorySortParm"]"
                    asp-route-SearchStudentName="@ViewData["SearchStudentName"]"
                    asp-route-pageSize="@ViewData["CurrentPageSize"]"
@@ -226,6 +248,9 @@
                     @Html.DisplayFor(modelItem => item.Schedule.Discipline.Name)
                 </td>
                 <td>
+                    @Html.DisplayFor(modelItem => item.Schedule.Group.Name)
+                </td>
+                <td>
                     @Html.DisplayFor(modelItem => item.Schedule.Auditory)
                 </td>
                 <td>
@@ -258,7 +283,7 @@
        asp-route-SearchChiefName="@ViewData["SearchChiefName"]"
        asp-route-pageSize="@ViewData["CurrentPageSize"]"
        asp-route-SearchGroupName="@ViewData["SearchGroupName"]"
-       class="@(!Model.HasPreviousPage ? "disabled" : "")">
+       class="@(!Model.HasPreviousPage ? "disabled" : "")" style="margin-right: 20px;">
         Предыдущая
     </a>
 

@@ -37,8 +37,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     ));
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -90,12 +88,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             }
 
             if (state is ScheduleListLoaded) {
-                return ScheduleTable(
-    schedules: state.scheduleList,
-    selectedDayNumber: _selectedDayNumber,
-    selectedGroupName: _selectedGroupName,
-    onItemTap: _navigateToAttendanceScreen,
-  );
+              return ScheduleTable(
+                schedules: state.scheduleList,
+                selectedDayNumber: _selectedDayNumber,
+                selectedGroupName: _selectedGroupName,
+                onItemTap: _navigateToAttendanceScreen,
+              );
             }
 
             return const Center(child: Text('Нажмите кнопку загрузки'));
@@ -122,12 +120,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
     );
   }
-void _navigateToAttendanceScreen(BuildContext context, Schedule schedule) {
-context.router.push(AttendanceRoute(
-  day: schedule.dayOfWeek,
-  groupName: schedule.group.name,
-  discipline: schedule.discipline.name,
-  time: schedule.startTime
-));
-}
+
+  void _navigateToAttendanceScreen(BuildContext context, Schedule schedule) {
+    context.router.push(AttendanceRoute(
+        day: schedule.dayOfWeek,
+        groupName: schedule.group.name,
+        discipline: schedule.discipline.name,
+        time: schedule.startTime));
+  }
 }

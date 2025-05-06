@@ -13,11 +13,11 @@ namespace StudyProj.Repositories.Implementations
             var students = Context.Set<Student>().AsQueryable();
             if (!string.IsNullOrEmpty(student.Name))
             {
-                students = students.Where(d => d.Name.Contains(student.Name));
+                students = students.Where(d => d.Name == student.Name);
             }
             if(student.Group != null && !string.IsNullOrEmpty(student.Group.Name))
             {
-                students = students.Where(d => d.Group.Name.Contains(student.Group.Name));
+                students = students.Where(d => d.Group.Name == student.Group.Name);
             }
 
             return await students.ToListAsync();  // Асинхронное получение всех записей

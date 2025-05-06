@@ -22,7 +22,17 @@ namespace StudyProj.Repositories.Implementations
                 }
                 else if (isChief)
                 {
-                    Attendances = Attendances.Where(a => a.Schedule.Group.Chief.Name == currentUserName);
+                    var chief = Context.Chiefs.FirstOrDefault(c => c.Name == currentUserName);
+                    if (chief != null && chief.GroupId != null)
+                    {
+                        // Получаем посещения, связанные с группой этого старосты
+                        Attendances = Attendances.Where(a => a.Schedule.GroupId == chief.GroupId);
+                    }
+                    else
+                    {
+                        // Если пользователь не староста или группа не назначена, возвращаем пустой список
+                        Attendances = Enumerable.Empty<Attendance>().AsQueryable();
+                    }
                 }
             }
             if (attendance.AttendanceDate != null)
@@ -41,10 +51,10 @@ namespace StudyProj.Repositories.Implementations
             {
                 Attendances = Attendances.Where(d => d.Schedule.Discipline.Name == attendance.Schedule.Discipline.Name);
             }
-            if (attendance.Schedule != null && attendance.Schedule.Group != null && attendance.Schedule.Group.Chief != null && !string.IsNullOrEmpty(attendance.Schedule.Group.Chief.Name))
-            {
-                Attendances = Attendances.Where(d => d.Schedule.Group.Chief.Name == attendance.Schedule.Group.Chief.Name);
-            }
+            //if (attendance.Schedule != null && attendance.Schedule.Group != null && attendance.Schedule.Group.Chief != null && !string.IsNullOrEmpty(attendance.Schedule.Group.Chief.Name))
+            //{
+            //    Attendances = Attendances.Where(d => d.Schedule.Group.Chief.Name == attendance.Schedule.Group.Chief.Name);
+            //}
             if (attendance.Schedule != null && attendance.Schedule.Teacher != null && !string.IsNullOrEmpty(attendance.Schedule.Teacher.Name))
             {
                 Attendances = Attendances.Where(d => d.Schedule.Teacher.Name == attendance.Schedule.Teacher.Name);
@@ -53,10 +63,10 @@ namespace StudyProj.Repositories.Implementations
             {
                 Attendances = Attendances.Where(d => d.Schedule.Group.Name == attendance.Schedule.Group.Name);
             }
-            if (attendance.Schedule != null && attendance.Schedule.Group != null && attendance.Schedule.Group.Chief != null && !string.IsNullOrEmpty(attendance.Schedule.Group.Chief.Name))
-            {
-                Attendances = Attendances.Where(d => d.Schedule.Group.Chief.Name == attendance.Schedule.Group.Chief.Name);
-            }
+            //if (attendance.Schedule != null && attendance.Schedule.Group != null && attendance.Schedule.Group.Chief != null && !string.IsNullOrEmpty(attendance.Schedule.Group.Chief.Name))
+            //{
+            //    Attendances = Attendances.Where(d => d.Schedule.Group.Chief.Name == attendance.Schedule.Group.Chief.Name);
+            //}
             if (attendance.Schedule != null && attendance.Schedule.DayOfWeek != null)
             {
                 Attendances = Attendances.Where(d => d.Schedule.DayOfWeek == attendance.Schedule.DayOfWeek);

@@ -13,7 +13,7 @@ namespace StudyProj.Repositories.Implementations
             var teachers = Context.Set<Teacher>().AsQueryable();
             if (!string.IsNullOrEmpty(teacher.Name))
             {
-                teachers = teachers.Where(d => d.Name.Contains(teacher.Name));
+                teachers = teachers.Where(d => d.Name == teacher.Name);
             }
             //if (teacher.Facility != null && !string.IsNullOrEmpty(teacher.Facility.Name))
             //{

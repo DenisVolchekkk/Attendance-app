@@ -16,7 +16,11 @@ namespace StudyProj.Repositories.Implementations
             var Chiefs = Context.Set<Chief>().AsQueryable();
             if (!string.IsNullOrEmpty(chief.Name))
             {
-                Chiefs = Chiefs.Where(d => d.Name.Contains(chief.Name));
+                Chiefs = Chiefs.Where(d => d.Name == chief.Name);
+            }
+            if (chief.Group != null && !string.IsNullOrEmpty(chief.Group.Name))
+            {
+                Chiefs = Chiefs.Where(d => d.Group.Name == chief.Group.Name);
             }
             return await Chiefs.ToListAsync();  // Асинхронное получение всех записей
         }

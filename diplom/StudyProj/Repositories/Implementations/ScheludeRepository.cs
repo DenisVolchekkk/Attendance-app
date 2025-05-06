@@ -19,7 +19,17 @@ namespace StudyProj.Repositories.Implementations
                 }
                 else if (isChief)
                 {
-                    schedules = schedules.Where(a => a.Group.Chief.Name == currentUserName);
+                    var chief = Context.Chiefs.FirstOrDefault(c => c.Name == currentUserName);
+                    if (chief != null && chief.GroupId != null)
+                    {
+                        // Получаем посещения, связанные с группой этого старосты
+                        schedules = schedules.Where(a => a.GroupId == chief.GroupId);
+                    }
+                    else
+                    {
+                        // Если пользователь не староста или группа не назначена, возвращаем пустой список
+                        schedules = Enumerable.Empty<Schedule>().AsQueryable();
+                    }
                 }
             }
             if (schedule.DayOfWeek != null)
@@ -32,11 +42,19 @@ namespace StudyProj.Repositories.Implementations
             }
             if (schedule.Teacher != null && !string.IsNullOrEmpty(schedule.Teacher.Name))
             {
-                schedules = schedules.Where(d => d.Teacher.Name.Contains(schedule.Teacher.Name));
+                schedules = schedules.Where(d => d.Teacher.Name == schedule.Teacher.Name);
             }
             if (schedule.Discipline != null && !string.IsNullOrEmpty(schedule.Discipline.Name))
             {
-                schedules = schedules.Where(d => d.Discipline.Name.Contains(schedule.Discipline.Name));
+                schedules = schedules.Where(d => d.Discipline.Name == schedule.Discipline.Name);
+            }
+            if (schedule.Semestr != null)
+            {
+                schedules = schedules.Where(d => d.Semestr == schedule.Semestr);
+            }
+            if (schedule.StudyYear != null )
+            {
+                schedules = schedules.Where(d => d.StudyYear == schedule.StudyYear);
             }
             schedules = schedules.OrderBy(s => s.DayOfWeek)
                      .ThenBy(s => s.StartTime);

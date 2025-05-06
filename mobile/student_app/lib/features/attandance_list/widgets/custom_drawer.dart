@@ -229,20 +229,13 @@ Future<void> _selectTime(BuildContext context) async {
           ),
           ListTile(
             leading: const Icon(Icons.home),
-            title: const Text('Home'),
+            title: const Text('Гайд'),
             onTap: () {
-              Navigator.pop(context);
+              AutoRouter.of(context).push(GuideRoute());
               onHomeTap();
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              onSettingsTap();
-            },
-          ),
+
         ],
       ),
     );
